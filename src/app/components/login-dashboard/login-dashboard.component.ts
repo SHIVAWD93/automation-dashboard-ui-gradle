@@ -43,7 +43,7 @@ export class LoginDashboardComponent {
     if (this.loginForm.valid) {
       const { username, password } = this.loginForm.value;
       this.appService.getUserInfo(username, password).subscribe({
-        next: (user: any) => {
+        next: (user: { permission: string; token: string }) => {
           this.sessionStorageService.saveWithExpiry('userInfo', user, 3600000);
           this.appService.userPermission = user.permission;
           this.appService.token = user.token;
@@ -51,7 +51,7 @@ export class LoginDashboardComponent {
           this.authenticated.emit(true);
           this.router.navigate(["/dashboard"]);
         },
-        error: (err: any) => {
+        error: () => {
           this.errorMessage = "User does not exist.";
           setTimeout(() => {
             this.errorMessage = "";
@@ -113,7 +113,7 @@ export class LoginDashboardComponent {
   }
 
   sessionLogin(): void {
-    let value = this.sessionStorageService.getWithExpiry("userInfo");
+    const value = this.sessionStorageService.getWithExpiry<{ permission: string; token: string }>("userInfo");
     if (value) {
       this.appService.userPermission = value.permission;
       this.appService.token = value.token;

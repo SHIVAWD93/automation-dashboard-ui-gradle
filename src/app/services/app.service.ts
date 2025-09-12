@@ -1,8 +1,7 @@
 import { Injectable } from "@angular/core";
-import { UserPermission } from "../models/user-permission.modal";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { environment } from "../../environments/environment";
-import { BehaviorSubject } from "rxjs";
+import { BehaviorSubject, Observable } from "rxjs";
 
 @Injectable({
   providedIn: "root",
@@ -15,21 +14,21 @@ export class AppService {
   constructor(private httpClient: HttpClient) {
   }
 
-  getAllPermissions(): any {
+  getAllPermissions(): Observable<unknown> {
     return this.httpClient.get(environment.apiUrl.concat("/permissions"));
   }
 
-  getUserInfo(userName: string, password: string): any {
+  getUserInfo(userName: string, password: string): Observable<{ permission: string; token: string }> {
     let params = new HttpParams()
       .set("userName", userName)
       .set("password", password);
 
-    return this.httpClient.get(environment.apiUrl.concat("/user"), {
+    return this.httpClient.get<{ permission: string; token: string }>(environment.apiUrl.concat("/user"), {
       params: params,
     });
   }
 
-  registerUser(user: any): any {
+  registerUser<T extends Record<string, unknown>>(user: T): Observable<unknown> {
     return this.httpClient.post(environment.apiUrl.concat("/user"), user);
   }
 }

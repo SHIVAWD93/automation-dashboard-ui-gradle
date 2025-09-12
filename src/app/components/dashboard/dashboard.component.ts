@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef  } from '@angular/core';
 import { ApiService } from '../../services/api.service';
-import { Project, Domain } from '../../models/project.model';
+import { Project } from '../../models/project.model';
+import { Domain } from '../../models/domain.model';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);

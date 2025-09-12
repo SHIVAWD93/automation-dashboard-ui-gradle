@@ -32,7 +32,7 @@ export class AuthInterceptor implements HttpInterceptor {
     }
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        console.log(error);
+        console.error(error);
         if (error.error.error) {
           this.sessionStorageService.removeAll();
           window.location.reload();
