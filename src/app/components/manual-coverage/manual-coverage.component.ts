@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
-import { Domain } from '../../models/project.model'; // Add this import
+import { Domain } from '../../models/domain.model';
+import { Project } from '../../models/project.model';
+import { Tester } from '../../models/tester.model';
 
 interface Sprint {
   id: string;
@@ -42,24 +44,7 @@ interface JiraTestCase {
   domainMapped?: string;
 }
 
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  jiraProjectKey?: string;
-  jiraBoardId?: string;
-  domain: {
-    id: number;
-    name: string;
-  };
-}
-
-interface Tester {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-}
+// Use shared models instead of local duplicates
 
 interface SprintStatistics {
   totalTestCases: number;

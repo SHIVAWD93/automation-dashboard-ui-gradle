@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Project } from '../models/project.model';
-import { Domain } from '../models/project.model';
+import { Domain } from '../models/domain.model';
 import { TestCase } from '../models/test-case.model';
 import { Tester } from '../models/tester.model';
 import { JenkinsResult, JenkinsTestCase, JenkinsStatistics, JenkinsConnectionTest, JenkinsFilters } from '../models/jenkins.model';
@@ -23,8 +23,22 @@ export class ApiService {
     })
   };
 
-  constructor(private http: HttpClient) {
-    console.log('API Service initialized with baseUrl:', this.baseUrl);
+  constructor(private http: HttpClient) {}
+
+  // Helper: Build HttpParams from an object of optional values (skips null/undefined/empty)
+  private buildParamsFromObject(source: Record<string, string | number | boolean | null | undefined>): HttpParams {
+    let params = new HttpParams();
+    Object.entries(source).forEach(([key, rawValue]) => {
+      if (rawValue === null || rawValue === undefined) {
+        return;
+      }
+      const value = String(rawValue);
+      if (value === '') {
+        return;
+      }
+      params = params.set(key, value);
+    });
+    return params;
   }
 
   // Domain API methods
@@ -203,26 +217,14 @@ export class ApiService {
 
   // NEW: Filtered Jenkins results method
   getFilteredJenkinsResults(filters: JenkinsFilters): Observable<JenkinsResult[]> {
-    let params = new HttpParams();
-
-    if (filters.projectId) {
-      params = params.set('projectId', filters.projectId.toString());
-    }
-    if (filters.automationTesterId) {
-      params = params.set('automationTesterId', filters.automationTesterId.toString());
-    }
-    if (filters.jobFrequency) {
-      params = params.set('jobFrequency', filters.jobFrequency);
-    }
-    if (filters.buildStatus) {
-      params = params.set('buildStatus', filters.buildStatus);
-    }
-    if (filters.searchTerm) {
-      params = params.set('searchTerm', filters.searchTerm);
-    }
-    if (filters.passPercentageThreshold) {
-      params = params.set('passPercentageThreshold', filters.passPercentageThreshold.toString());
-    }
+    const params = this.buildParamsFromObject({
+      projectId: filters.projectId,
+      automationTesterId: filters.automationTesterId,
+      jobFrequency: filters.jobFrequency,
+      buildStatus: filters.buildStatus,
+      searchTerm: filters.searchTerm,
+      passPercentageThreshold: filters.passPercentageThreshold,
+    });
 
     return this.http.get<JenkinsResult[]>(`${this.baseUrl}/jenkins/results/filtered`, { params })
       .pipe(catchError(this.handleError));
@@ -295,25 +297,13 @@ export class ApiService {
   // Manual Page / Jira Integration Methods
   // ENHANCED: Manual Coverage methods with optional Jira configuration
   getJiraSprints(jiraProjectKey?: string, jiraBoardId?: string): Observable<any[]> {
-    let params = new HttpParams();
-    if (jiraProjectKey) {
-      params = params.set('jiraProjectKey', jiraProjectKey);
-    }
-    if (jiraBoardId) {
-      params = params.set('jiraBoardId', jiraBoardId);
-    }
+    const params = this.buildParamsFromObject({ jiraProjectKey, jiraBoardId });
     return this.http.get<any[]>(`${this.baseUrl}/manual-page/sprints`, { params })
       .pipe(catchError(this.handleError));
   }
 
   syncSprintIssues(sprintId: string, jiraProjectKey?: string, jiraBoardId?: string): Observable<any[]> {
-    let params = new HttpParams();
-    if (jiraProjectKey) {
-      params = params.set('jiraProjectKey', jiraProjectKey);
-    }
-    if (jiraBoardId) {
-      params = params.set('jiraBoardId', jiraBoardId);
-    }
+    const params = this.buildParamsFromObject({ jiraProjectKey, jiraBoardId });
     return this.http.post<any[]>(`${this.baseUrl}/manual-page/sprints/${sprintId}/sync`, {}, { params })
       .pipe(catchError(this.handleError));
   }
@@ -342,20 +332,9 @@ export class ApiService {
       // Note: domainId will be handled by project selection
     };
     
-    console.log('Sending mapping request to backend:', {
-      endpoint: `${this.baseUrl}/manual-page/test-cases/${testCaseId}/mapping`,
-      data: mappingData
-    });
-    
     return this.http.put<any>(`${this.baseUrl}/manual-page/test-cases/${testCaseId}/mapping`, mappingData, this.httpOptions)
       .pipe(
         catchError((error) => {
-          console.error('Mapping endpoint error:', {
-            status: error.status,
-            message: error.message,
-            url: error.url,
-            data: mappingData
-          });
           return this.handleError(error);
         })
       );
@@ -421,19 +400,19 @@ export class ApiService {
       .pipe(catchError(this.handleError));
   }
 
-  getManualPageProjects(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/manual-page/projects`)
+  getManualPageProjects(): Observable<Project[]> {
+    return this.http.get<Project[]>(`${this.baseUrl}/manual-page/projects`)
       .pipe(catchError(this.handleError));
   }
 
   // NEW: Get domains for filtering
-  getManualPageDomains(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/manual-page/domains`)
+  getManualPageDomains(): Observable<Domain[]> {
+    return this.http.get<Domain[]>(`${this.baseUrl}/manual-page/domains`)
       .pipe(catchError(this.handleError));
   }
 
-  getManualPageTesters(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/manual-page/testers`)
+  getManualPageTesters(): Observable<Tester[]> {
+    return this.http.get<Tester[]>(`${this.baseUrl}/manual-page/testers`)
       .pipe(catchError(this.handleError));
   }
 
@@ -443,8 +422,8 @@ export class ApiService {
   }
 
   // Test Case management (separate from main test cases)
-  getAllTestCases(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.baseUrl}/test-cases`)
+  getAllTestCases(): Observable<TestCase[]> {
+    return this.http.get<TestCase[]>(`${this.baseUrl}/test-cases`)
       .pipe(catchError(this.handleError));
   }
 
