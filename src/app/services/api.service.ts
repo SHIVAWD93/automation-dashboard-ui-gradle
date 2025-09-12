@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders, HttpErrorResponse, HttpParams } from '@angular
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Project } from '../models/project.model';
-import { Domain } from '../models/project.model';
+import { Domain } from '../models/domain.model';
 import { TestCase } from '../models/test-case.model';
 import { Tester } from '../models/tester.model';
 import { JenkinsResult, JenkinsTestCase, JenkinsStatistics, JenkinsConnectionTest, JenkinsFilters } from '../models/jenkins.model';
