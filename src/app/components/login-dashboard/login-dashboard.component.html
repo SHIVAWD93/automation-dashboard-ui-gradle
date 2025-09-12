@@ -1,0 +1,208 @@
+<!-- <div class="container h-100 d-flex justify-content-center align-items-center">
+  <div class="row w-100">
+    <div class="col-12 col-sm-8 col-md-6 col-lg-4 mx-auto">
+      <p-card *ngIf="showlogin" class="shadow-sm">
+        <ng-template pTemplate="header">
+          <h4 class="text-center mb-0">Login</h4>
+        </ng-template>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+          <div class="form-group mb-3">
+            <label for="username">Username</label>
+            <input pInputText id="username" formControlName="username" class="form-control" />
+            <div class="text-danger small mt-1"
+              *ngIf="loginForm.get('username')?.touched && loginForm.get('username')?.invalid">
+              Username is required
+            </div>
+          </div>
+
+          <div class="form-group mb-4">
+            <label for="password">Password</label>
+            <input pInputText id="password" type="password" formControlName="password" class="form-control" />
+            <div class="text-danger small mt-1"
+              *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
+              Password is required
+            </div>
+          </div>
+
+          <button pButton type="submit" label="Login" class="btn btn-primary w-100"
+            [disabled]="loginForm.invalid"></button>
+        </form>
+        <span>Not a existing user </span><p-button label="Register" (onClick)="showlogin = !showlogin"></p-button>
+      </p-card>
+        <p-card *ngIf="!showlogin">
+          <ng-template pTemplate="header">
+            <h4 class="text-center mb-0">Register</h4>
+          </ng-template>
+          <form [formGroup]="registrationForm" (ngSubmit)="registerUser()">
+            <div>
+              <label for="userName">Username:</label>
+              <input id="userName" formControlName="userName" type="text">
+              <div *ngIf="registrationForm.get('userName')?.invalid && registrationForm.get('userName')?.touched">
+                Username is required.
+              </div>
+            </div>
+
+            <div>
+              <label for="password">Password:</label>
+              <input id="password" formControlName="password" type="password">
+              <div *ngIf="registrationForm.get('password')?.invalid && registrationForm.get('password')?.touched">
+                Password must be at least 6 characters.
+              </div>
+            </div>
+
+            <div>
+              <label for="role">Role:</label>
+              <select id="role" formControlName="role">
+                <option value="">Select a role</option>
+                <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+              </select>
+              <div *ngIf="registrationForm.get('role')?.invalid && registrationForm.get('role')?.touched">
+                Role is required.
+              </div>
+            </div>
+
+            <button type="submit" [disabled]="registrationForm.invalid">Register</button>
+          </form>
+
+        </p-card>
+    </div>
+  </div>
+</div> -->
+<div class="container h-100 d-flex justify-content-center align-items-center">
+  <div class="row w-100">
+    <div class="col-12 col-sm-8 col-md-6 col-lg-4 mx-auto mt-4">
+      <p-card *ngIf="showlogin">
+        <ng-template pTemplate="header">
+          <div class="login-header">
+            <img src="./assets/winsupply_logo.jpg" alt="Company Logo" class="login-logo">
+            <h2 class="login-title">QA Dashboard Login</h2>
+            <p class="login-subtitle">Please sign in to your account</p>
+          </div>
+        </ng-template>
+        <div class="login-container">
+          <div class="login-card">
+            <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+              <!-- Error Message -->
+              <div class="alert alert-danger" *ngIf="errorMessage" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ errorMessage }}
+              </div>
+
+              <!-- Username Field -->
+              <div class="form-group">
+                <label for="username" class="form-label">
+                  <i class="fas fa-user me-2"></i>Username
+                </label>
+                <input type="text" id="username" formControlName="username" class="form-control"
+                  [class.is-invalid]="isFieldInvalid('username')" placeholder="Enter your username"
+                  autocomplete="username">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('username')">
+                  {{ getFieldError('username') }}
+                </div>
+              </div>
+
+              <!-- Password Field -->
+              <div class="form-group">
+                <label for="password" class="form-label">
+                  <i class="fas fa-lock me-2"></i>Password
+                </label>
+                <div class="password-input-group">
+                  <input [type]="showPassword ? 'text' : 'password'" id="password" formControlName="password"
+                    class="form-control" [class.is-invalid]="isFieldInvalid('password')"
+                    placeholder="Enter your password" autocomplete="current-password">
+                  <button type="button" class="password-toggle-btn" (click)="togglePasswordVisibility()"
+                    [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+                    <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                  </button>
+                </div>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+                  {{ getFieldError('password') }}
+                </div>
+              </div>
+
+              <!-- Login Button -->
+              <button type="submit" class="btn btn-primary login-btn" [disabled]="isLoading || loginForm.invalid">
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <i *ngIf="!isLoading" class="fas fa-sign-in-alt me-2"></i>
+                {{ isLoading ? 'Signing In...' : 'Sign In' }}
+              </button>
+            </form>
+            <div>
+              <span>Not a user? </span><a (click)="showlogin = !showlogin" class="underline cursor-pointer">Click to register</a>
+
+            </div>
+          </div>
+        </div>
+      </p-card>
+      <p-card *ngIf="!showlogin">
+        <ng-template pTemplate="header">
+          <div class="login-header">
+            <img src="./assets/winsupply_logo.jpg" alt="Company Logo" class="login-logo">
+            <h2 class="login-title">QA Dashboard Register</h2>
+            <p class="login-subtitle">Please Enter your details</p>
+          </div>
+        </ng-template>
+        <div class="login-container">
+          <div class="login-card">
+            <form [formGroup]="registrationForm" (ngSubmit)="registerUser()" class="login-form">
+              <!-- Error Message -->
+              <div class="alert alert-danger" *ngIf="errorMessage" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ errorMessage }}
+              </div>
+
+              <!-- Username Field -->
+              <div class="form-group">
+                <label for="username" class="form-label">
+                  <i class="fas fa-user me-2"></i>Username
+                </label>
+                <input type="text" id="username" formControlName="userName" class="form-control"
+                  [class.is-invalid]="isFieldInvalid('username')" placeholder="Enter your username"
+                  autocomplete="username">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('username')">
+                  {{ getFieldError('username') }}
+                </div>
+              </div>
+
+              <!-- Password Field -->
+              <div class="form-group">
+                <label for="password" class="form-label">
+                  <i class="fas fa-lock me-2"></i>Password
+                </label>
+                <div class="password-input-group">
+                  <input [type]="showPassword ? 'text' : 'password'" id="password" formControlName="password"
+                    class="form-control" [class.is-invalid]="isFieldInvalid('password')"
+                    placeholder="Enter your password" autocomplete="current-password">
+                  <button type="button" class="password-toggle-btn" (click)="togglePasswordVisibility()"
+                    [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+                    <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                  </button>
+                </div>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+                  {{ getFieldError('password') }}
+                </div>
+              </div>
+              <!-- Role Field -->
+              <div class="form-group">
+                <label for="role" class="form-label">
+                  <i class="fas fa-user-tag me-2"></i>Role
+                </label>
+                <p-dropdown [options]="roles" formControlName="role"></p-dropdown>
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('password')">
+                  {{ getFieldError('password') }}
+                </div>
+              </div>
+              <!-- Login Button -->
+              <button type="submit" class="btn btn-primary login-btn" [disabled]="isLoading || registrationForm.invalid">
+                <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <i *ngIf="!isLoading" class="fas fa-sign-in-alt me-2"></i>
+                {{ isLoading ? 'Registering...' : 'Register' }}
+              </button>
+            </form>
+          </div>
+        </div>
+      </p-card>
+    </div>
+  </div>
+</div>

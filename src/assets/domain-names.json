@@ -1,0 +1,10 @@
+[
+  { "name": "Shipping Solutions", "code": "Shipping Solutions" },
+  { "name": "Sales", "code": "Sales" },
+   { "name": "Accounting and Finance", "code": "Accounting and Finance" },
+   { "name": "Accounts Receivable", "code": "Accounts Receivable" },
+   { "name": "Inventory", "code": "Inventory" },
+   { "name": "Marketing IT", "code": "Marketing IT" },
+   { "name": "Pricing", "code": "Pricing" },
+   { "name": "Purchasing", "code": "Purchasing" }
+]

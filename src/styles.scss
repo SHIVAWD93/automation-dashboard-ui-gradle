@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "primeicons/primeicons.css";
+
+/* Global styles */
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+  color: #333;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.nav-header {
+  background: linear-gradient(90.02deg, white 1.25%, #4b3cfb 130.15%);
+}
+
+/* Custom styles for the dashboard */
+.dashboard-card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+}
+
+.navbar-brand {
+  font-weight: bold;
+  color: #007bff !important;
+}
+
+.nav-link {
+  color: #495057 !important;
+  font-weight: 500;
+}
+
+.nav-link:hover {
+  color: #007bff !important;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+.table {
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.badge {
+  font-size: 0.8em;
+  padding: 0.4em 0.8em;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Chart container */
+.chart-container {
+  position: relative;
+  height: 400px;
+  margin-bottom: 20px;
+}
+
+/* Profile image styles */
+.profile-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.profile-image-lg {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Status badges */
+.status-active {
+  background-color: #28a745;
+}
+.status-inactive {
+  background-color: #6c757d;
+}
+.status-planning {
+  background-color: #ffc107;
+}
+.status-testing {
+  background-color: #17a2b8;
+}
+.status-automated {
+  background-color: #28a745;
+}
+.status-manual {
+  background-color: #007bff;
+}
+.status-in-progress {
+  background-color: #ffc107;
+}
+.status-ready {
+  background-color: #17a2b8;
+}
+
+/* Priority badges */
+.priority-high {
+  background-color: #dc3545;
+}
+.priority-medium {
+  background-color: #ffc107;
+}
+.priority-low {
+  background-color: #6c757d;
+}
+
+/* Role badges */
+.role-automation {
+  background-color: #28a745;
+}
+.role-manual {
+  background-color: #007bff;
+}
+
+/* Loading spinner */
+.spinner-border {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.p-dropdown {
+  min-height: 36px;
+  width: 100% !important;
+}
+.p-dropdown .p-dropdown-items-wrapper ul{
+  padding: 2px;
+}
+
+.nav-bar button{
+  height: 20px;
+}

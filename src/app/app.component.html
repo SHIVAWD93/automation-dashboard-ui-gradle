@@ -1,0 +1,59 @@
+<div class="app-container">
+  <nav *ngIf="authenticated" class="navbar navbar-expand-lg navbar-dark nav-header">
+    <div class="flex" style="width:100%; display:flex">
+      <a class="navbar-brand" href="#" >
+        <img src=".\assets\winsupply_logo.jpg" style="border-radius: 50%;">
+        QA Automation Coverage Dashboard
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/dashboard" routerLinkActive="active">
+              <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/testers" routerLinkActive="active">
+              <i class="fas fa-users me-1"></i>Testers
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/projects" routerLinkActive="active">
+              <i class="fas fa-project-diagram me-1"></i>Applications
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/test-cases" routerLinkActive="active">
+              <i class="fas fa-tasks me-1"></i>Test Cases
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/manual-coverage" routerLinkActive="active">
+              <i class="fab fa-jira me-1"></i>Manual Coverage
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/jenkins-results" routerLinkActive="active">
+              <i class="fab fa-jenkins me-1"></i>
+              Jenkins Results
+            </a>
+          </li>
+          
+          <div class="nav-item">
+            <button class="btn btn-danger" (click)="logout()">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <main class="main-content">
+    <div class="mt-4">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>
