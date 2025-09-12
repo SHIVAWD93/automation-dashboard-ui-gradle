@@ -12,7 +12,7 @@ export class SessionStorageService {
    * @param value The data to store.
    * @param ttl Time to live in milliseconds (e.g., 3600000 for 1 hour).
    */
-  saveWithExpiry(key: string, value: any, ttl: number): void {
+  saveWithExpiry<T>(key: string, value: T, ttl: number): void {
     const now = new Date();
 
     const item = {
@@ -28,14 +28,14 @@ export class SessionStorageService {
    * @param key The sessionStorage key.
    * @returns The stored value, or null if expired or not found.
    */
-  getWithExpiry(key: string): any | null {
+  getWithExpiry<T>(key: string): T | null {
     const itemStr = sessionStorage.getItem(key);
     if (!itemStr) {
       return null;
     }
 
     try {
-      const item = JSON.parse(itemStr);
+      const item: { value: T; expiry: number } = JSON.parse(itemStr);
       const now = new Date();
 
       if (now.getTime() > item.expiry) {
@@ -51,7 +51,7 @@ export class SessionStorageService {
     }
   }
 
-  removeItem(key: any): void {
+  removeItem(key: string): void {
     sessionStorage.removeItem(key);
   }
 
