@@ -11,10 +11,15 @@
             Create, manage, and track test cases across your automation projects
           </p>
         </div>
+        @if (showTestCaseOptions) {
         <div class="flex items-center pr-4 gap-3">
-          <p-button label="Create Test case" (onClick)="showDialog = !showDialog"></p-button>
+          <p-button
+                  label="Create Test case"
+                  (onClick)="showDialog = !showDialog"
+          ></p-button>
           <p-button label="Bulk upload" (onClick)="togglePopUp()"></p-button>
         </div>
+        }
       </div>
     </div>
   </div>
@@ -33,197 +38,593 @@
 
             <div class="search-box">
               <div class="position-relative">
-                <input type="text" class="form-control" placeholder="Search test cases..." [(ngModel)]="searchTerm"
-                  (input)="onSearchChange()">
+                <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Search test cases..."
+                        [(ngModel)]="searchTerm"
+                        (input)="onSearchChange()"
+                />
                 <i class="fas fa-search search-icon"></i>
               </div>
             </div>
 
             <div>
-              <select class="form-select" [(ngModel)]="selectedProject" (change)="onProjectFilterChange()">
+              <select
+                      class="form-select"
+                      [(ngModel)]="selectedProject"
+                      (change)="onProjectFilterChange()"
+              >
                 <option [ngValue]="null">All Applications</option>
                 <option *ngFor="let project of projects" [ngValue]="project">
                   {{ project.name }}
                 </option>
               </select>
             </div>
+
+            <div>
+              <select
+                      class="form-select"
+                      [(ngModel)]="selectedTester"
+                      (change)="onTesterFilterChange()"
+              >
+                <option [ngValue]="null">All Assigned Testers</option>
+
+                <option *ngFor="let tester of testers" [ngValue]="tester">
+                  {{ tester.name }}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <select
+                      class="form-select"
+                      [(ngModel)]="selectedManualTester"
+                      (change)="onManualTesterFilterChange()"
+              >
+                <option [ngValue]="null">All Manual Testers</option>
+
+                <option *ngFor="let tester of testers" [ngValue]="tester">
+                  {{ tester.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Reset filters button -->
+            <div>
+              <button
+                      class="btn btn-outline-secondary btn-sm"
+                      (click)="resetFilters()"
+                      title="Reset all filters"
+              >
+                <i class="fas fa-undo me-1"></i>
+                Reset
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="table-scrollable">
-          <table class="table table-hover mb-0" *ngIf="filteredTestCases.length > 0; else noTestCases">
-            <thead>
-              <tr>
-                <th class="title-cell" (click)="sortTable('title')" [class.sorted]="isSorted('title')">
-                  Title <i [class]="getSortIcon('title')"></i>
-                </th>
-                <th class="description-cell" (click)="sortTable('description')"
-                  [class.sorted]="isSorted('description')">
-                 Automation Test script or Description <i [class]="getSortIcon('description')"></i>
-                </th>
-                <th class="project-cell" (click)="sortTable('projectId')" [class.sorted]="isSorted('projectId')">
-                  Project <i [class]="getSortIcon('projectId')"></i>
-                </th>
-                <th class="tester-cell" (click)="sortTable('testerId')" [class.sorted]="isSorted('testerId')">
-                  Tester <i [class]="getSortIcon('testerId')"></i>
-                </th>
-                <th class="status-cell" (click)="sortTable('status')" [class.sorted]="isSorted('status')">
-                  Status <i [class]="getSortIcon('status')"></i>
-                </th>
-                <th class="priority-cell" (click)="sortTable('priority')" [class.sorted]="isSorted('priority')">
-                  Priority <i [class]="getSortIcon('priority')"></i>
-                </th>
-                <th class="actions-cell">Actions</th>
-              </tr>
+        <div class="table-responsive">
+          <table
+                  class="table table-hover mb-0"
+                  *ngIf="paginatedTestCases.length > 0; else noTestCases"
+          >
+            <thead class="table-header">
+            <tr>
+              <th
+                      class="sortable title-cell"
+                      (click)="sortTable('title')"
+                      [class.sorted]="isSorted('title')"
+              >
+                Title <i [class]="getSortIcon('title')"></i>
+              </th>
+              <th
+                      class="project-cell sortable"
+                      (click)="sortTable('projectId')"
+                      [class.sorted]="isSorted('projectId')"
+              >
+                Project <i [class]="getSortIcon('projectId')"></i>
+              </th>
+              <th
+                      class="tester-cell sortable"
+                      (click)="sortTable('testerId')"
+                      [class.sorted]="isSorted('testerId')"
+              >
+                Assigned Tester <i [class]="getSortIcon('testerId')"></i>
+              </th>
+              <th
+                      class="manual-tester-cell sortable"
+                      (click)="sortTable('manualTesterId')"
+                      [class.sorted]="isSorted('manualTesterId')"
+              >
+                Manual Tester <i [class]="getSortIcon('manualTesterId')"></i>
+              </th>
+              <th
+                      class="status-cell sortable"
+                      (click)="sortTable('status')"
+                      [class.sorted]="isSorted('status')"
+              >
+                Status <i [class]="getSortIcon('status')"></i>
+              </th>
+              <th
+                      class="priority-cell sortable"
+                      (click)="sortTable('priority')"
+                      [class.sorted]="isSorted('priority')"
+              >
+                Priority <i [class]="getSortIcon('priority')"></i>
+              </th>
+              <th
+                      class="testcase-type-cell sortable"
+                      (click)="sortTable('testCaseType')"
+                      [class.sorted]="isSorted('testCaseType')"
+              >
+                Test Case Type <i [class]="getSortIcon('testCaseType')"></i>
+              </th>
+              <th
+                      class="tool-type-cell sortable"
+                      (click)="sortTable('toolType')"
+                      [class.sorted]="isSorted('toolType')"
+              >
+                Tool Type <i [class]="getSortIcon('toolType')"></i>
+              </th>
+              <th *ngIf="showTestCaseOptions" class="actions-cell">
+                Actions
+              </th>
+            </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let testCase of filteredTestCases">
-                <td class="title-cell">{{ testCase.title }}</td>
-                <td class="description-cell" [title]="testCase.description">{{ testCase.description }}</td>
-                <td class="project-cell">{{ getProjectName(testCase.projectId) }}</td>
-                <td class="tester-cell">{{ getTesterName(testCase.testerId) }}</td>
-                <td class="status-cell">
+            <tr
+                    *ngFor="
+                  let testCase of paginatedTestCases;
+                  trackBy: trackByTestCase
+                "
+            >
+              <td class="title-cell">
+                <div class="test-case-title">
+                  <strong>{{ testCase.title }}</strong>
+                  <small
+                          class="text-muted d-block"
+                          *ngIf="testCase.description"
+                  >
+                    {{ testCase.description | slice: 0 : 80
+                    }}{{
+                    testCase.description && testCase.description.length > 80
+                    ? "..."
+                    : ""
+                    }}
+                  </small>
+                </div>
+              </td>
+              <td class="project-cell">
+                  <span class="badge bg-light text-dark">
+                    {{ getProjectName(testCase.projectId) }}
+                  </span>
+              </td>
+              <td class="tester-cell">
+                <div class="tester-info">
+                    <span class="fw-semibold">{{
+                      getTesterName(testCase.testerId)
+                    }}</span>
+                  <small
+                          class="text-muted d-block"
+                          *ngIf="getTesterName(testCase.testerId) !== '-'"
+                  >
+                  </small>
+                </div>
+              </td>
+              <td class="manual-tester-cell">
+                <div class="tester-info">
+                    <span class="fw-semibold">{{
+                      getTesterName(testCase.manualTesterId || 0)
+                    }}</span>
+                  <small
+                          class="text-muted d-block"
+                          *ngIf="
+                        getTesterName(testCase.manualTesterId || 0) !== '-'
+                      "
+                  >
+                  </small>
+                </div>
+              </td>
+              <td class="status-cell">
                   <span class="badge" [class]="getStatusColor(testCase.status)">
                     {{ testCase.status }}
                   </span>
-                </td>
-                <td class="priority-cell">
-                  <span class="badge" [class]="getPriorityColor(testCase.priority)">
+              </td>
+              <td class="priority-cell">
+                  <span
+                          class="badge"
+                          [class]="getPriorityColor(testCase.priority)"
+                  >
                     {{ testCase.priority }}
                   </span>
-                </td>
-                <td class="actions-cell">
-                  <button class="btn btn-outline-primary btn-sm me-2" (click)="editTestCase(testCase)">
-                    <i class="fas fa-edit"></i> Edit
+              </td>
+              <td class="testcase-type-cell">
+                  <span class="badge bg-info" *ngIf="testCase.testCaseType">
+                    {{ testCase.testCaseType }}
+                  </span>
+                <span class="text-muted" *ngIf="!testCase.testCaseType"
+                >-</span
+                >
+              </td>
+              <td class="tool-type-cell">
+                  <span class="badge bg-secondary" *ngIf="testCase.toolType">
+                    {{ testCase.toolType }}
+                  </span>
+                <span class="text-muted" *ngIf="!testCase.toolType">-</span>
+              </td>
+              <td *ngIf="showTestCaseOptions" class="actions-cell">
+                <div class="btn-group" role="group">
+                  <button
+                          class="btn btn-outline-primary btn-sm"
+                          (click)="editTestCase(testCase)"
+                          [title]="'Edit ' + testCase.title"
+                  >
+                    <i class="fas fa-edit"></i>
                   </button>
-                  <button class="btn btn-outline-danger btn-sm" (click)="deleteTestCase(testCase.id)">
-                    <i class="fas fa-trash"></i> Delete
+                  <button
+                          class="btn btn-outline-danger btn-sm"
+                          (click)="deleteTestCase(testCase.id)"
+                          [title]="'Delete ' + testCase.title"
+                  >
+                    <i class="fas fa-trash"></i>
                   </button>
-                </td>
-              </tr>
+                </div>
+              </td>
+            </tr>
             </tbody>
           </table>
 
           <ng-template #noTestCases>
-            <div class="no-data">
-              <i class="fas fa-clipboard-list text-muted"></i>
-              <h5 class="mt-3 text-muted">No test cases found</h5>
+            <div class="no-data py-5">
+              <i class="fas fa-clipboard-list text-muted mb-3"></i>
+              <h5 class="text-muted">No test cases found</h5>
               <p class="text-muted">
-                {{ searchTerm ? 'No test cases match your search criteria' :
-                selectedProject ? 'No test cases found for the selected project' :
-                'Create your first test case to get started' }}
+                {{
+                searchTerm
+                ? "No test cases match your search criteria"
+                : selectedProject || selectedTester || selectedManualTester
+                ? "No test cases found for the selected filters"
+                : "Create your first test case to get started"
+                }}
               </p>
+              <button
+                      class="btn btn-primary"
+                      (click)="showDialog = true"
+                      *ngIf="
+                  showTestCaseOptions &&
+                  !searchTerm &&
+                  !selectedProject &&
+                  !selectedTester &&
+                  !selectedManualTester
+                "
+              >
+                <i class="fas fa-plus me-2"></i>
+                Create Test Case
+              </button>
             </div>
           </ng-template>
+        </div>
+
+
+
+        <!-- Replace the Pagination Controls section in test-case-tracking.component.html -->
+        <!-- This shows only relevant page numbers with ellipsis for large datasets -->
+
+        <!-- Pagination Controls -->
+        <div class="d-flex justify-content-between align-items-center p-3" *ngIf="totalPages > 1">
+          <div class="text-muted">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
+            {{ Math.min(currentPage * itemsPerPage, filteredTestCases.length) }}
+            of {{ filteredTestCases.length }} test cases
+          </div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <!-- Previous Button -->
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a
+                        class="page-link"
+                        (click)="goToPage(currentPage - 1)"
+                        style="cursor: pointer"
+                >Previous</a>
+              </li>
+
+              <!-- First Page -->
+              <li class="page-item" [class.active]="currentPage === 1">
+                <a
+                        class="page-link"
+                        (click)="goToPage(1)"
+                        style="cursor: pointer"
+                >1</a>
+              </li>
+
+              <!-- Left Ellipsis -->
+              <li class="page-item disabled" *ngIf="currentPage > 4">
+                <span class="page-link">...</span>
+              </li>
+
+              <!-- Middle Pages (show current page and 2 pages on each side) -->
+              <li
+                      class="page-item"
+                      [class.active]="currentPage === page"
+                      *ngFor="let page of getVisiblePages()"
+              >
+                <a
+                        class="page-link"
+                        (click)="goToPage(page)"
+                        style="cursor: pointer"
+                >{{ page }}</a>
+              </li>
+
+              <!-- Right Ellipsis -->
+              <li class="page-item disabled" *ngIf="currentPage < totalPages - 3">
+                <span class="page-link">...</span>
+              </li>
+
+              <!-- Last Page -->
+              <li
+                      class="page-item"
+                      [class.active]="currentPage === totalPages"
+                      *ngIf="totalPages > 1"
+              >
+                <a
+                        class="page-link"
+                        (click)="goToPage(totalPages)"
+                        style="cursor: pointer"
+                >{{ totalPages }}</a>
+              </li>
+
+              <!-- Next Button -->
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a
+                        class="page-link"
+                        (click)="goToPage(currentPage + 1)"
+                        style="cursor: pointer"
+                >Next</a>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
     </div>
   </div>
 </div>
-<app-bulk-upload [isVisible]="showPopup" (close)="togglePopUp()"></app-bulk-upload>
+<app-bulk-upload
+        [isVisible]="showPopup"
+        (close)="togglePopUp()"
+></app-bulk-upload>
 
-<p-dialog [modal]="true" appendTo="body" [(visible)]="showDialog" [style]="{ width: '50rem' }">
+<p-dialog
+        [modal]="true"
+        appendTo="body"
+        [(visible)]="showDialog"
+        [style]="{ width: '50rem' }"
+>
   <ng-template pTemplate="header">
     <div>
       <h5 class="card-title mb-0">
         <i class="fas fa-plus me-2" *ngIf="!editingTestCase"></i>
         <i class="fas fa-edit me-2" *ngIf="editingTestCase"></i>
-        {{ editingTestCase ? 'Edit Test Case' : 'Create New Test Case' }}
+        {{ editingTestCase ? "Edit Test Case" : "Create New Test Case" }}
       </h5>
     </div>
   </ng-template>
   <div>
     <div>
-      <form [formGroup]="testCaseForm"  (ngSubmit)="onSubmit()">
+      <form [formGroup]="testCaseForm" (ngSubmit)="onSubmit()">
         <div class="mb-3">
           <label for="title" class="form-label">Test Case Title</label>
-          <input type="text" class="form-control" id="title" formControlName="title"
-            [class.is-invalid]="testCaseForm.get('title')?.invalid && testCaseForm.get('title')?.touched"
-            placeholder="Enter test case title">
-          <div class="invalid-feedback"
-            *ngIf="testCaseForm.get('title')?.invalid && testCaseForm.get('title')?.touched">
+          <input
+                  type="text"
+                  class="form-control"
+                  id="title"
+                  formControlName="title"
+                  [class.is-invalid]="
+              testCaseForm.get('title')?.invalid &&
+              testCaseForm.get('title')?.touched
+            "
+                  placeholder="Enter test case title"
+          />
+          <div
+                  class="invalid-feedback"
+                  *ngIf="
+              testCaseForm.get('title')?.invalid &&
+              testCaseForm.get('title')?.touched
+            "
+          >
             Title is required and must be at least 5 characters long.
           </div>
         </div>
 
         <div class="mb-3">
-          <label for="description" class="form-label">Description / Automation Test Script Name</label>
-          <textarea class="form-control" id="description" rows="3" formControlName="description"
-            [class.is-invalid]="testCaseForm.get('description')?.invalid && testCaseForm.get('description')?.touched"
-            placeholder="Enter test case description"></textarea>
-          <div class="invalid-feedback"
-            *ngIf="testCaseForm.get('description')?.invalid && testCaseForm.get('description')?.touched">
+          <label for="description" class="form-label"
+          >Description / Automation Test Script Name</label
+          >
+          <textarea
+                  class="form-control"
+                  id="description"
+                  rows="3"
+                  formControlName="description"
+                  [class.is-invalid]="
+              testCaseForm.get('description')?.invalid &&
+              testCaseForm.get('description')?.touched
+            "
+                  placeholder="Enter test case description"
+          ></textarea>
+          <div
+                  class="invalid-feedback"
+                  *ngIf="
+              testCaseForm.get('description')?.invalid &&
+              testCaseForm.get('description')?.touched
+            "
+          >
             Description is required and must be at least 3 characters long.
           </div>
         </div>
 
         <div class="mb-3">
           <label for="projectId" class="form-label">Application</label>
-          <select class="form-select" id="projectId" formControlName="projectId"
-            [class.is-invalid]="testCaseForm.get('projectId')?.invalid && testCaseForm.get('projectId')?.touched">
+          <select
+                  class="form-select"
+                  id="projectId"
+                  formControlName="projectId"
+                  [class.is-invalid]="
+              testCaseForm.get('projectId')?.invalid &&
+              testCaseForm.get('projectId')?.touched
+            "
+          >
             <option value="">Select Application</option>
             <option *ngFor="let project of projects" [value]="project.id">
               {{ project.name }}
             </option>
           </select>
-          <div class="invalid-feedback"
-            *ngIf="testCaseForm.get('projectId')?.invalid && testCaseForm.get('projectId')?.touched">
+          <div
+                  class="invalid-feedback"
+                  *ngIf="
+              testCaseForm.get('projectId')?.invalid &&
+              testCaseForm.get('projectId')?.touched
+            "
+          >
             Please select a project.
           </div>
+        </div>
+        <div class="mb-3">
+          <label for="testCaseType" class="form-label">Test Case Type</label>
+          <select
+                  class="form-select"
+                  id="testCaseType"
+                  formControlName="testCaseType"
+          >
+            <option value="">Select Test Case Type</option>
+            <option value="API">API</option>
+            <option value="UI">UI</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="toolType" class="form-label">Tool Type</label>
+          <select class="form-select" id="toolType" formControlName="toolType">
+            <option value="">Select Tool Type</option>
+            <option value="Selenium">Selenium</option>
+            <option value="Tosca">Tosca</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="manualTesterId" class="form-label">Manual Tester</label>
+          <select
+                  class="form-select"
+                  id="manualTesterId"
+                  formControlName="manualTesterId"
+          >
+            <option value="">Select Manual Tester</option>
+            <option *ngFor="let tester of testers" [value]="tester.id">
+              {{ tester.name }} ({{ tester.role }})
+            </option>
+          </select>
         </div>
 
         <div class="mb-3">
           <label for="testerId" class="form-label">Assigned Tester</label>
-          <select class="form-select" id="testerId" formControlName="testerId"
-            [class.is-invalid]="testCaseForm.get('testerId')?.invalid && testCaseForm.get('testerId')?.touched">
+          <select
+                  class="form-select"
+                  id="testerId"
+                  formControlName="testerId"
+                  [class.is-invalid]="
+              testCaseForm.get('testerId')?.invalid &&
+              testCaseForm.get('testerId')?.touched
+            "
+          >
             <option value="">Select Tester</option>
             <option *ngFor="let tester of testers" [value]="tester.id">
               {{ tester.name }} ({{ tester.role }})
             </option>
           </select>
-          <div class="invalid-feedback"
-            *ngIf="testCaseForm.get('testerId')?.invalid && testCaseForm.get('testerId')?.touched">
+          <div
+                  class="invalid-feedback"
+                  *ngIf="
+              testCaseForm.get('testerId')?.invalid &&
+              testCaseForm.get('testerId')?.touched
+            "
+          >
             Please select a tester.
           </div>
         </div>
 
         <div class="mb-3">
           <label for="status" class="form-label">Status</label>
-          <select class="form-select" id="status" formControlName="status"
-            [class.is-invalid]="testCaseForm.get('status')?.invalid && testCaseForm.get('status')?.touched">
+          <select
+                  class="form-select"
+                  id="status"
+                  formControlName="status"
+                  [class.is-invalid]="
+              testCaseForm.get('status')?.invalid &&
+              testCaseForm.get('status')?.touched
+            "
+          >
             <option *ngFor="let status of statusOptions" [value]="status.value">
               {{ status.label }}
             </option>
           </select>
-          <div class="invalid-feedback"
-            *ngIf="testCaseForm.get('status')?.invalid && testCaseForm.get('status')?.touched">
+          <div
+                  class="invalid-feedback"
+                  *ngIf="
+              testCaseForm.get('status')?.invalid &&
+              testCaseForm.get('status')?.touched
+            "
+          >
             Please select a status.
           </div>
         </div>
 
         <div class="mb-3">
           <label for="priority" class="form-label">Priority</label>
-          <select class="form-select" id="priority" formControlName="priority"
-            [class.is-invalid]="testCaseForm.get('priority')?.invalid && testCaseForm.get('priority')?.touched">
+          <select
+                  class="form-select"
+                  id="priority"
+                  formControlName="priority"
+                  [class.is-invalid]="
+              testCaseForm.get('priority')?.invalid &&
+              testCaseForm.get('priority')?.touched
+            "
+          >
             <option value="High">High</option>
             <option value="Medium">Medium</option>
             <option value="Low">Low</option>
           </select>
-          <div class="invalid-feedback"
-            *ngIf="testCaseForm.get('priority')?.invalid && testCaseForm.get('priority')?.touched">
+          <div
+                  class="invalid-feedback"
+                  *ngIf="
+              testCaseForm.get('priority')?.invalid &&
+              testCaseForm.get('priority')?.touched
+            "
+          >
             Please select a priority.
           </div>
         </div>
 
         <div class="flex gap-3">
-          <button type="submit" class="btn btn-primary" [disabled]="!testCaseForm.valid || loading">
-            <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="!testCaseForm.valid || loading"
+          >
+            <span
+                    *ngIf="loading"
+                    class="spinner-border spinner-border-sm me-2"
+            ></span>
             <i class="fas fa-save me-2" *ngIf="!loading"></i>
-            {{ loading ? 'Saving...' : (editingTestCase ? 'Update Test Case' : 'Create Test Case') }}
+            {{
+            loading
+            ? "Saving..."
+            : editingTestCase
+            ? "Update Test Case"
+            : "Create Test Case"
+            }}
           </button>
           <button type="button" class="btn btn-secondary" (click)="resetForm()">
             <i class="fas fa-undo me-2"></i>
-            {{ editingTestCase ? 'Cancel' : 'Reset' }}
+            {{ editingTestCase ? "Cancel" : "Reset" }}
           </button>
         </div>
       </form>

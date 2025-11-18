@@ -1,30 +1,59 @@
 import { Component, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from "@angular/forms";
 import { ApiService } from "../../services/api.service";
 import { Project, Domain } from "../../models/project.model";
 import { AppService } from "../../services/app.service";
-import { environment } from "../../../environments/environment";
+import { PrimeTemplate } from "primeng/api";
+import { DialogModule } from "primeng/dialog";
+import { Button } from "primeng/button";
+import { NgIf, NgFor, DatePipe } from "@angular/common";
+import { Severity } from "../../models/utils";
 
 @Component({
   selector: "app-project-management",
   templateUrl: "./project-management.component.html",
-  styleUrls: ["./project-management.component.css"],
+  styleUrls: ["./project-management.component.scss"],
+  standalone: true,
+  imports: [
+    NgIf,
+    Button,
+    FormsModule,
+    NgFor,
+    DialogModule,
+    PrimeTemplate,
+    ReactiveFormsModule,
+    DatePipe,
+  ],
 })
 export class ProjectManagementComponent implements OnInit {
   projectForm: FormGroup;
+
   projects: Project[] = [];
+
   domains: Domain[] = [];
+
   filteredProjects: Project[] = [];
+
   loading = false;
+
   editingProject: Project | null = null;
-  selectedDomainFilter: string = "";
-  showRegistration: boolean = false;
-  showDialog: boolean = false;
+
+  selectedDomainFilter = "";
+
+  showRegistration = false;
+
+  showDialog = false;
 
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
-    private appService: AppService
+    private appService: AppService,
   ) {
     this.projectForm = this.fb.group({
       domainId: ["", Validators.required],
@@ -33,10 +62,9 @@ export class ProjectManagementComponent implements OnInit {
       status: ["Active", Validators.required],
       // NEW: Jira configuration fields
       jiraProjectKey: [""],
-      jiraBoardId: ["", [Validators.pattern(/^\d*$/)]] // Only numeric values
+      jiraBoardId: ["", [Validators.pattern(/^\d*$/)]], // Only numeric values
     });
-    this.showRegistration =
-      this.appService.userPermission === environment.appWrite;
+    this.showRegistration = this.appService.hasAdminPermission;
   }
 
   ngOnInit(): void {
@@ -51,7 +79,7 @@ export class ProjectManagementComponent implements OnInit {
       },
       (error) => {
         console.error("Error loading domains:", error);
-      }
+      },
     );
   }
 
@@ -70,7 +98,7 @@ export class ProjectManagementComponent implements OnInit {
         },
         // NEW: Include Jira configuration fields
         jiraProjectKey: formData.jiraProjectKey?.trim() || null,
-        jiraBoardId: formData.jiraBoardId?.trim() || null
+        jiraBoardId: formData.jiraBoardId?.trim() || null,
       };
 
       if (this.editingProject) {
@@ -81,15 +109,18 @@ export class ProjectManagementComponent implements OnInit {
               this.loadProjects();
               this.resetForm();
               this.loading = false;
-              console.log('Project updated successfully:', response);
+              console.log("Project updated successfully:", response);
             },
             (error) => {
               console.error("Error updating project:", error);
-              alert(
-                "Error updating project: " + (error.error || error.message)
-              );
+              this.appService.showToast({
+                severity: Severity.error,
+                summary: "Error",
+                detail:
+                  "Error updating project: " + (error.error || error.message),
+              });
               this.loading = false;
-            }
+            },
           );
       } else {
         this.apiService.createProject(projectData).subscribe(
@@ -97,18 +128,23 @@ export class ProjectManagementComponent implements OnInit {
             this.loadProjects();
             this.resetForm();
             this.loading = false;
-            console.log('Project created successfully:', response);
+            console.log("Project created successfully:", response);
           },
           (error) => {
             console.error("Error creating project:", error);
-            alert("Error creating project: " + (error.error || error.message));
+            this.appService.showToast({
+              severity: Severity.error,
+              summary: "Error",
+              detail:
+                "Error creating project: " + (error.error || error.message),
+            });
             this.loading = false;
-          }
+          },
         );
       }
     } else {
       // Mark all fields as touched to show validation errors
-      Object.keys(this.projectForm.controls).forEach(key => {
+      Object.keys(this.projectForm.controls).forEach((key) => {
         this.projectForm.get(key)?.markAsTouched();
       });
     }
@@ -122,7 +158,7 @@ export class ProjectManagementComponent implements OnInit {
       },
       (error) => {
         console.error("Error loading projects:", error);
-      }
+      },
     );
   }
 
@@ -135,7 +171,7 @@ export class ProjectManagementComponent implements OnInit {
       this.filteredProjects = this.projects.filter(
         (project) =>
           project.domain &&
-          project.domain.id.toString() === this.selectedDomainFilter
+          project.domain.id.toString() === this.selectedDomainFilter,
       );
     } else {
       this.filteredProjects = [...this.projects];
@@ -151,7 +187,7 @@ export class ProjectManagementComponent implements OnInit {
       status: project.status,
       // NEW: Populate Jira configuration fields
       jiraProjectKey: project.jiraProjectKey || "",
-      jiraBoardId: project.jiraBoardId || ""
+      jiraBoardId: project.jiraBoardId || "",
     });
     this.showDialog = true;
   }
@@ -159,18 +195,22 @@ export class ProjectManagementComponent implements OnInit {
   deleteProject(id: number): void {
     if (
       confirm(
-        "Are you sure you want to delete this project? This will also delete all associated test cases."
+        "Are you sure you want to delete this project? This will also delete all associated test cases.",
       )
     ) {
       this.apiService.deleteProject(id).subscribe(
         () => {
           this.loadProjects();
-          console.log('Project deleted successfully');
+          console.log("Project deleted successfully");
         },
         (error) => {
           console.error("Error deleting project:", error);
-          alert("Error deleting project: " + (error.error || error.message));
-        }
+          this.appService.showToast({
+            severity: Severity.error,
+            summary: "Error",
+            detail: "Error deleting project: " + (error.error || error.message),
+          });
+        },
       );
     }
   }
@@ -180,7 +220,7 @@ export class ProjectManagementComponent implements OnInit {
     this.projectForm.patchValue({
       status: "Active",
       jiraProjectKey: "",
-      jiraBoardId: ""
+      jiraBoardId: "",
     });
     this.editingProject = null;
     this.showDialog = false;
@@ -201,6 +241,7 @@ export class ProjectManagementComponent implements OnInit {
 
   getDomainName(domainId: number): string {
     const domain = this.domains.find((d) => d.id === domainId);
+
     return domain ? domain.name : "Unknown Domain";
   }
 
@@ -213,6 +254,7 @@ export class ProjectManagementComponent implements OnInit {
     if (!this.hasJiraConfiguration(project)) {
       return "Not configured";
     }
+
     return `${project.jiraProjectKey} | Board: ${project.jiraBoardId}`;
   }
 
@@ -220,7 +262,7 @@ export class ProjectManagementComponent implements OnInit {
   onJiraBoardIdInput(event: any): void {
     // Only allow numeric input
     const value = event.target.value;
-    const numericValue = value.replace(/[^0-9]/g, '');
+    const numericValue = value.replace(/[^0-9]/g, "");
     if (value !== numericValue) {
       this.projectForm.patchValue({ jiraBoardId: numericValue });
     }

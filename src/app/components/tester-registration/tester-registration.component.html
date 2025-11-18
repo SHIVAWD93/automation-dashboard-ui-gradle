@@ -12,7 +12,10 @@
           </p>
         </div>
         <div *ngIf="showRegistration" class="flex items-center pr-4 gap-3">
-          <p-button label="Register Tester" (onClick)="showDialog = !showDialog"></p-button>
+          <p-button
+            label="Register Tester"
+            (onClick)="showDialog = !showDialog"
+          ></p-button>
         </div>
       </div>
     </div>
@@ -34,8 +37,14 @@
                 <div class="card-body text-center">
                   <div class="profile-image-container">
                     <img
-                      [src]="tester.profileImageUrl ? 'data:image/png;base64,' + tester.profileImageUrl : '/assets/user.png'"
-                      alt="{{ tester.name }}" class="profile-image" />
+                      [src]="
+                        tester.profileImage
+                          ? 'data:image/png;base64,' + tester.profileImage
+                          : '/src/assets/user.png'
+                      "
+                      alt="{{ tester.name }}"
+                      class="profile-image"
+                    />
                   </div>
 
                   <h6 class="card-title mt-3">{{ tester.name }}</h6>
@@ -48,12 +57,28 @@
                   </p>
                   <p class="card-text text-muted small">
                     <i class="fas fa-calendar-alt me-1"></i>
-                    {{ tester.createdAt | date:'shortDate' }}
+                    {{ tester.createdAt | date: "shortDate" }}
                   </p>
-                  <button *ngIf="showRegistration" class="btn btn-outline-danger btn-sm"
-                    (click)="deleteTester(tester.id)">
-                    <i class="fas fa-trash"></i>
-                  </button>
+
+                  <!-- Action buttons -->
+                  <div class="d-flex flex-column gap-2 mt-3">
+                    <button
+                      class="btn btn-outline-primary btn-sm"
+                      (click)="viewTesterMetrics(tester.id)"
+                    >
+                      <i class="fas fa-chart-line me-1"></i>
+                      View Metrics
+                    </button>
+
+                    <button
+                      *ngIf="showRegistration"
+                      class="btn btn-outline-danger btn-sm"
+                      (click)="deleteTester(tester.id)"
+                    >
+                      <i class="fas fa-trash me-1"></i>
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -61,9 +86,14 @@
 
           <ng-template #noTesters>
             <div class="text-center py-5">
-              <i class="fas fa-user-slash text-muted" style="font-size: 4rem;"></i>
+              <i
+                class="fas fa-user-slash text-muted"
+                style="font-size: 4rem"
+              ></i>
               <h5 class="mt-3 text-muted">No testers registered yet</h5>
-              <p class="text-muted">Register your first tester to get started</p>
+              <p class="text-muted">
+                Register your first tester to get started
+              </p>
             </div>
           </ng-template>
         </div>
@@ -71,7 +101,12 @@
     </div>
   </div>
 </div>
-<p-dialog [modal]="true" [(visible)]="showDialog" appendTo="body" [style]="{ width: '50rem' }">
+<p-dialog
+  [modal]="true"
+  [(visible)]="showDialog"
+  appendTo="body"
+  [style]="{ width: '50rem' }"
+>
   <ng-template pTemplate="header">
     <div>
       <h5 class="card-title mb-0">
@@ -85,54 +120,107 @@
       <form [formGroup]="testerForm" (ngSubmit)="onSubmit()">
         <div class="mb-3">
           <label for="name" class="form-label">Name</label>
-          <input type="text" class="form-control" id="name" formControlName="name"
-            [class.is-invalid]="testerForm.get('name')?.invalid && testerForm.get('name')?.touched">
-          <div class="invalid-feedback" *ngIf="testerForm.get('name')?.invalid && testerForm.get('name')?.touched">
+          <input
+            type="text"
+            class="form-control"
+            id="name"
+            formControlName="name"
+            [class.is-invalid]="
+              testerForm.get('name')?.invalid && testerForm.get('name')?.touched
+            "
+          />
+          <div
+            class="invalid-feedback"
+            *ngIf="
+              testerForm.get('name')?.invalid && testerForm.get('name')?.touched
+            "
+          >
             Name is required and must be at least 2 characters long.
           </div>
         </div>
 
         <div class="mb-3">
           <label for="role" class="form-label">Role</label>
-          <select class="form-select" id="role" formControlName="role"
-            [class.is-invalid]="testerForm.get('role')?.invalid && testerForm.get('role')?.touched">
+          <select
+            class="form-select"
+            id="role"
+            formControlName="role"
+            [class.is-invalid]="
+              testerForm.get('role')?.invalid && testerForm.get('role')?.touched
+            "
+          >
             <option value="">Select Role</option>
             <option value="Manual Tester">Manual Tester</option>
             <option value="Automation Tester">Automation Tester</option>
             <option value="Manager">Manager</option>
           </select>
-          <div class="invalid-feedback" *ngIf="testerForm.get('role')?.invalid && testerForm.get('role')?.touched">
+          <div
+            class="invalid-feedback"
+            *ngIf="
+              testerForm.get('role')?.invalid && testerForm.get('role')?.touched
+            "
+          >
             Please select a role.
           </div>
         </div>
 
         <div class="mb-3">
           <label for="gender" class="form-label">Gender</label>
-          <select class="form-select" id="gender" formControlName="gender"
-            [class.is-invalid]="testerForm.get('gender')?.invalid && testerForm.get('gender')?.touched">
+          <select
+            class="form-select"
+            id="gender"
+            formControlName="gender"
+            [class.is-invalid]="
+              testerForm.get('gender')?.invalid &&
+              testerForm.get('gender')?.touched
+            "
+          >
             <option value="">Select Gender</option>
             <option value="Male">Male</option>
             <option value="Female">Female</option>
             <option value="Other">Other</option>
           </select>
-          <div class="invalid-feedback" *ngIf="testerForm.get('gender')?.invalid && testerForm.get('gender')?.touched">
+          <div
+            class="invalid-feedback"
+            *ngIf="
+              testerForm.get('gender')?.invalid &&
+              testerForm.get('gender')?.touched
+            "
+          >
             Please select a gender.
           </div>
         </div>
 
         <div class="mb-3">
           <label for="profileImage" class="form-label">Profile Image</label>
-          <input type="file" class="form-control" id="profileImage" accept="image/*" (change)="onFileSelected($event)">
+          <input
+            type="file"
+            class="form-control"
+            id="profileImage"
+            accept="image/*"
+            (change)="onFileSelected($event)"
+          />
           <div class="mt-2" *ngIf="previewUrl">
-            <img [src]="previewUrl" alt="Preview" class="img-thumbnail preview-image">
+            <img
+              [src]="previewUrl"
+              alt="Preview"
+              class="img-thumbnail preview-image"
+            />
           </div>
         </div>
 
         <div class="d-grid gap-2">
-          <button type="submit" class="btn btn-primary" [disabled]="!testerForm.valid">
-            <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="!testerForm.valid"
+          >
+            <span
+              *ngIf="loading"
+              class="spinner-border spinner-border-sm me-2"
+            ></span>
             <i class="fas fa-save me-2" *ngIf="!loading"></i>
-            {{ loading ? 'Saving...' : 'Register Tester' }}
+            {{ loading ? "Saving..." : "Register Tester" }}
           </button>
           <button type="button" class="btn btn-secondary" (click)="resetForm()">
             <i class="fas fa-undo me-2"></i>

@@ -4,7 +4,7 @@ export interface Tester {
   role: string;
   gender: string;
   experience: number;
-  profileImageUrl?: string; // Added optional property for profile image
+  profileImage?: string; // Added optional property for profile image
   createdAt: Date;
   updatedAt: Date;
 }

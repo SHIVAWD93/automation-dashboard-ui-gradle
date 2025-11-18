@@ -18,3 +18,13 @@ export interface Project {
   updatedAt: Date;
   testCaseCount?: number;
 }
+
+export interface DomainStats {
+  totalProjects: number;
+  totalTestCases: number;
+  automatedTestCases: number;
+  inProgressTestCases: number;
+  readyTestCases: number;
+  completedTestCases: number;
+  cannotBeAutomated: number;
+}

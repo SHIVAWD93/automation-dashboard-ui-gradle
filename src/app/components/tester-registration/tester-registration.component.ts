@@ -1,28 +1,57 @@
 import { Component, OnInit } from "@angular/core";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { Router } from "@angular/router";
+import {
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormsModule,
+  ReactiveFormsModule,
+} from "@angular/forms";
 import { ApiService } from "../../services/api.service";
 import { Tester } from "../../models/tester.model";
 import { AppService } from "../../services/app.service";
 import { environment } from "../../../environments/environment";
+import { PrimeTemplate } from "primeng/api";
+import { DialogModule } from "primeng/dialog";
+import { Button } from "primeng/button";
+import { NgIf, NgFor, DatePipe } from "@angular/common";
 
 @Component({
   selector: "app-tester-registration",
   templateUrl: "./tester-registration.component.html",
-  styleUrls: ["./tester-registration.component.css"],
+  styleUrls: ["./tester-registration.component.scss"],
+  standalone: true,
+  imports: [
+    NgIf,
+    Button,
+    NgFor,
+    DialogModule,
+    PrimeTemplate,
+    FormsModule,
+    ReactiveFormsModule,
+    DatePipe,
+  ],
 })
 export class TesterRegistrationComponent implements OnInit {
   testerForm: FormGroup;
+
   testers: Tester[] = [];
+
   loading = false;
+
   selectedFile: any = null;
+
   previewUrl: string | ArrayBuffer | null = null;
-  showRegistration: boolean = false;
-  showDialog: boolean = false;
+
+  showRegistration = false;
+
+  showDialog = false;
 
   constructor(
     private fb: FormBuilder,
     private apiService: ApiService,
-    private appService: AppService
+    private appService: AppService,
+    private router: Router,
   ) {
     this.testerForm = this.fb.group({
       name: ["", [Validators.required, Validators.minLength(2)]],
@@ -30,8 +59,7 @@ export class TesterRegistrationComponent implements OnInit {
       gender: ["", Validators.required],
       experience: [0, [Validators.required, Validators.min(0)]], // Added experience field
     });
-    this.showRegistration =
-      this.appService.userPermission === environment.appWrite;
+    this.showRegistration = this.appService.hasAdminPermission;
   }
 
   ngOnInit(): void {
@@ -75,38 +103,33 @@ export class TesterRegistrationComponent implements OnInit {
         // You'll need to add this method to your API service for file upload
         this.apiService.createTesterWithImage(formData).subscribe(
           (response) => {
-            console.log("Tester created successfully:", response);
             this.loadTesters();
             this.resetForm();
             this.loading = false;
             this.showDialog = false;
           },
           (error) => {
-            console.error("Error creating tester:", error);
             this.loading = false;
-          }
+          },
         );
       } else {
         // Send as JSON without file
         this.apiService.createTester(testerData as Tester).subscribe(
           (response) => {
-            console.log("Tester created successfully:", response);
             this.loadTesters();
             this.resetForm();
             this.loading = false;
             this.showDialog = false;
           },
           (error) => {
-            console.error("Error creating tester:", error);
             this.loading = false;
-          }
+          },
         );
       }
     }
   }
 
   loadTesters(): void {
-    console.log("Loading testers..."); // Debug log
     this.apiService.getTesters().subscribe(
       (data: Tester[]) => {
         this.testers = data;
@@ -114,7 +137,7 @@ export class TesterRegistrationComponent implements OnInit {
       (error) => {
         // Set empty array on error to prevent undefined issues
         this.testers = [];
-      }
+      },
     );
   }
 
@@ -122,14 +145,17 @@ export class TesterRegistrationComponent implements OnInit {
     if (confirm("Are you sure you want to delete this tester?")) {
       this.apiService.deleteTester(id).subscribe(
         () => {
-          console.log("Tester deleted successfully");
           this.loadTesters();
         },
         (error) => {
           console.error("Error deleting tester:", error);
-        }
+        },
       );
     }
+  }
+
+  viewTesterMetrics(testerId: number): void {
+    this.router.navigate(["/testers", testerId, "metrics"]);
   }
 
   resetForm(): void {

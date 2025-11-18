@@ -9,8 +9,9 @@ body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f8f9fa;
   color: #333;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #e6e7f2;
 }
+
 .nav-header {
   background: linear-gradient(90.02deg, white 1.25%, #4b3cfb 130.15%);
 }
@@ -94,24 +95,31 @@ body {
 .status-active {
   background-color: #28a745;
 }
+
 .status-inactive {
   background-color: #6c757d;
 }
+
 .status-planning {
   background-color: #ffc107;
 }
+
 .status-testing {
   background-color: #17a2b8;
 }
+
 .status-automated {
   background-color: #28a745;
 }
+
 .status-manual {
   background-color: #007bff;
 }
+
 .status-in-progress {
   background-color: #ffc107;
 }
+
 .status-ready {
   background-color: #17a2b8;
 }
@@ -120,9 +128,11 @@ body {
 .priority-high {
   background-color: #dc3545;
 }
+
 .priority-medium {
   background-color: #ffc107;
 }
+
 .priority-low {
   background-color: #6c757d;
 }
@@ -131,6 +141,7 @@ body {
 .role-automation {
   background-color: #28a745;
 }
+
 .role-manual {
   background-color: #007bff;
 }
@@ -145,10 +156,52 @@ body {
   min-height: 36px;
   width: 100% !important;
 }
-.p-dropdown .p-dropdown-items-wrapper ul{
+
+.p-dropdown .p-dropdown-items-wrapper ul {
   padding: 2px;
 }
 
-.nav-bar button{
+.nav-bar button {
   height: 20px;
+}
+
+.logout .logout-button {
+  .p-button {
+    background-color: #dc3545; // Bootstrap danger red
+    border-color: #dc3545;
+    color: #fff;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    transition:
+      background-color 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+
+  .p-button:hover {
+    background-color: #bb2d3b;
+    border-color: #bb2d3b;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.4);
+  }
+
+  .pi.pi-sign-out {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+  }
+}
+
+.overlay-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.p-progress-spinner-svg {
+  height: 15%;
 }

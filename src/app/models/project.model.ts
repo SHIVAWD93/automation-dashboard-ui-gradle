@@ -21,3 +21,12 @@ export interface Project {
   jiraProjectKey?: string;
   jiraBoardId?: string;
 }
+
+export interface ProjectTestCaseStats {
+  total: number;
+  automated: number;
+  inProgress: number;
+  ready: number;
+  completed: number;
+  cannotBeAutomated: number;
+}

@@ -1,34 +1,56 @@
 import { Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
-import { environment } from "../../environments/environment";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, combineLatest, firstValueFrom } from "rxjs";
+import { MessageService } from "primeng/api";
+import { ToastMessage } from "../models/utils";
+import { UserResourcePermissionsService } from "./user-resource-permissions.service";
 
 @Injectable({
   providedIn: "root",
 })
 export class AppService {
-  userPermission: string | undefined;
-  isAuthorised: boolean = false;
-  token:string = '';
-  authenticated = new BehaviorSubject(false);
-  constructor(private httpClient: HttpClient) {
+  // Observables to expose to components
+  readonly isAuthorised$ = new BehaviorSubject<boolean>(false);
+  readonly authenticated$ = this.isAuthorised$; // alias for clarity
+  hasReadPermission: boolean = false;
+  hasWritePermission: boolean = false;
+  hasAdminPermission: boolean = false;
+
+  private loadingSubject = new BehaviorSubject<boolean>(false);
+  loading$ = this.loadingSubject.asObservable();
+
+  constructor(
+    private userResourcePermissionService: UserResourcePermissionsService,
+    private messageService: MessageService
+  ) {
+    this.subscribeToPermissions();
   }
 
-  getAllPermissions(): Observable<unknown> {
-    return this.httpClient.get(environment.apiUrl.concat("/permissions"));
+  subscribeToPermissions(): void {
+    combineLatest([
+      this.userResourcePermissionService.hasReadPermission$,
+      this.userResourcePermissionService.hasWritePermission$,
+      this.userResourcePermissionService.hasAdminPermission$,
+    ]).subscribe(([read, write, admin]) => {
+      this.hasReadPermission = read;
+      this.hasWritePermission = write;
+      this.hasAdminPermission = admin;
+      const isAuthorised = read || write || admin;
+      this.isAuthorised$.next(isAuthorised);
+    });
   }
-
-  getUserInfo(userName: string, password: string): Observable<{ permission: string; token: string }> {
-    let params = new HttpParams()
-      .set("userName", userName)
-      .set("password", password);
-
-    return this.httpClient.get<{ permission: string; token: string }>(environment.apiUrl.concat("/user"), {
-      params: params,
+  showToast(toastMessage: ToastMessage): void {
+    this.messageService.add({
+      severity: toastMessage.severity,
+      summary: toastMessage.summary,
+      detail: toastMessage.detail,
     });
   }
 
-  registerUser<T extends Record<string, unknown>>(user: T): Observable<unknown> {
-    return this.httpClient.post(environment.apiUrl.concat("/user"), user);
+  showLoader() {
+    this.loadingSubject.next(true);
+  }
+
+  hideLoader() {
+    this.loadingSubject.next(false);
   }
 }

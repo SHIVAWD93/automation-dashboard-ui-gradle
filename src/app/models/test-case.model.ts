@@ -10,4 +10,8 @@ export interface TestCase {
   status: string;
   createdAt: Date;
   updatedAt: Date;
+  testCaseType?: string | null;
+  toolType?: string | null;
+  manualTesterId?: number | null;
+  manualTesterName?: string;
 }

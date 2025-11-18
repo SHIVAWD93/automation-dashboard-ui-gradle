@@ -52,6 +52,3 @@ Thumbs.db
 
 # Ignore Cypress video captures for now
 /cypress/videos
-
-# package-lock
-package-lock.json

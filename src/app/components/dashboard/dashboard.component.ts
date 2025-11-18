@@ -1,45 +1,26 @@
-import { Component, OnInit, ChangeDetectorRef  } from '@angular/core';
-import { ApiService } from '../../services/api.service';
-import { Project } from '../../models/project.model';
-import { Domain } from '../../models/domain.model';
-import { Chart, registerables } from 'chart.js';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from "@angular/core";
+import { ApiService } from "../../services/api.service";
+import {
+  Project,
+  Domain,
+  ProjectTestCaseStats,
+} from "../../models/project.model";
+import { Chart, registerables } from "chart.js";
+import { NgFor, NgIf, DatePipe } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { DomainStats } from "../../models/domain.model";
+import { DashboardStats } from "../../models/dashboard-stats";
 
 Chart.register(...registerables);
 
-interface DashboardStats {
-  totalDomains: number;
-  totalProjects: number;
-  totalTestCases: number;
-  totalTesters: number;
-  automatedTestCases: number;
-  inProgressTestCases: number;
-  readyTestCases: number;
-  completedTestCases: number;
-}
-
-interface ProjectTestCaseStats {
-  total: number;
-  automated: number;
-  inProgress: number;
-  ready: number;
-  completed: number;
-}
-
-interface DomainStats {
-  totalProjects: number;
-  totalTestCases: number;
-  automatedTestCases: number;
-  inProgressTestCases: number;
-  readyTestCases: number;
-  completedTestCases: number;
-}
-
 @Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  selector: "app-dashboard",
+  templateUrl: "./dashboard.component.html",
+  styleUrls: ["./dashboard.component.scss"],
+  standalone: true,
+  imports: [FormsModule, NgFor, NgIf, DatePipe],
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   dashboardStats: DashboardStats = {
     totalDomains: 0,
     totalProjects: 0,
@@ -48,16 +29,22 @@ export class DashboardComponent implements OnInit {
     automatedTestCases: 0,
     inProgressTestCases: 0,
     readyTestCases: 0,
-    completedTestCases: 0
+    completedTestCases: 0,
+    cannotBeAutomated: 0,
   };
 
   domains: Domain[] = [];
+
   projects: Project[] = [];
+
   filteredProjects: Project[] = [];
 
-  selectedDomainId: string = '';
-  selectedProjectId: string = '';
+  selectedDomainId = "";
+
+  selectedProjectId = "";
+
   selectedDomain: Domain | null = null;
+
   selectedProject: Project | null = null;
 
   projectTestCaseStats: ProjectTestCaseStats = {
@@ -65,7 +52,8 @@ export class DashboardComponent implements OnInit {
     automated: 0,
     inProgress: 0,
     ready: 0,
-    completed: 0
+    completed: 0,
+    cannotBeAutomated: 0,
   };
 
   domainStats: DomainStats = {
@@ -74,78 +62,69 @@ export class DashboardComponent implements OnInit {
     automatedTestCases: 0,
     inProgressTestCases: 0,
     readyTestCases: 0,
-    completedTestCases: 0
+    completedTestCases: 0,
+    cannotBeAutomated: 0,
   };
 
   coverageChart: Chart | null = null;
+
   statusChart: Chart | null = null;
 
-  constructor(private apiService: ApiService, private cd: ChangeDetectorRef) {}
+  constructor(
+    private apiService: ApiService,
+    private cd: ChangeDetectorRef,
+  ) {}
 
   ngOnInit(): void {
     this.loadDashboardData();
   }
 
-  async loadDashboardData(): Promise<void> {
+  loadDashboardData(): void {
     try {
-      await Promise.all([
-        this.loadDomains(),
+      this.loadDomains(),
         this.loadProjects(),
-        this.loadDashboardStats()
-      ]);
-
-      this.createCoverageChart();
+        this.loadDashboardStats(),
+        this.createCoverageChart();
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      console.error("Error loading dashboard data:", error);
     }
   }
 
-  loadDomains(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.apiService.getActiveDomains().subscribe(
-        (data: Domain[]) => {
-          this.domains = data;
-          resolve();
-        },
-        (error) => {
-          console.error('Error loading domains:', error);
-          reject(error);
-        }
-      );
-    });
+  loadDomains(): void {
+    this.apiService.getActiveDomains().subscribe(
+      (data: Domain[]) => {
+        this.domains = data;
+      },
+      (error) => {
+        console.error("Error loading domains:", error);
+      },
+    );
   }
 
-  loadProjects(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.apiService.getProjects().subscribe(
-        (data: Project[]) => {
-          this.projects = data;
-          resolve();
-        },
-        (error) => {
-          console.error('Error loading projects:', error);
-          reject(error);
-        }
-      );
-    });
+  loadProjects(): void {
+    this.apiService.getProjects().subscribe(
+      (data: Project[]) => {
+        this.projects = data;
+      },
+      (error) => {
+        console.error("Error loading projects:", error);
+      },
+    );
   }
 
-  loadDashboardStats(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Load dashboard statistics
-      this.apiService.getDashboardStats().subscribe(
-        (stats: DashboardStats) => {
-          this.dashboardStats = stats;
-          resolve();
-        },
-        (error) => {
-          console.error('Error loading dashboard stats:', error);
-          // Fallback: calculate basic stats from available data
-          this.calculateBasicStats();
-          resolve();
-        }
-      );
-    });
+  loadDashboardStats(): void {
+    // Load dashboard statistics
+    this.apiService.getDashboardStats().subscribe(
+      (stats: DashboardStats) => {
+        this.dashboardStats = stats;
+        this.createCoverageChart();
+      },
+      (error) => {
+        console.error("Error loading dashboard stats:", error);
+        // Fallback: calculate basic stats from available data
+        this.calculateBasicStats();
+      },
+    );
   }
 
   calculateBasicStats(): void {
@@ -156,9 +135,13 @@ export class DashboardComponent implements OnInit {
 
   onDomainChange(): void {
     if (this.selectedDomainId) {
-      this.selectedDomain = this.domains.find(d => d.id.toString() === this.selectedDomainId) || null;
-      this.filteredProjects = this.projects.filter(p => p.domain && p.domain.id.toString() === this.selectedDomainId);
-      this.selectedProjectId = ''; // Reset project selection
+      this.selectedDomain =
+        this.domains.find((d) => d.id.toString() === this.selectedDomainId) ||
+        null;
+      this.filteredProjects = this.projects.filter(
+        (p) => p.domain && p.domain.id.toString() === this.selectedDomainId,
+      );
+      this.selectedProjectId = ""; // Reset project selection
       this.selectedProject = null;
 
       this.loadDomainStats();
@@ -166,7 +149,7 @@ export class DashboardComponent implements OnInit {
     } else {
       this.selectedDomain = null;
       this.filteredProjects = [];
-      this.selectedProjectId = '';
+      this.selectedProjectId = "";
       this.selectedProject = null;
       this.clearStatusChart();
     }
@@ -174,7 +157,10 @@ export class DashboardComponent implements OnInit {
 
   onProjectChange(): void {
     if (this.selectedProjectId) {
-      this.selectedProject = this.filteredProjects.find(p => p.id.toString() === this.selectedProjectId) || null;
+      this.selectedProject =
+        this.filteredProjects.find(
+          (p) => p.id.toString() === this.selectedProjectId,
+        ) || null;
       this.loadProjectTestCaseStats();
     } else {
       this.selectedProject = null;
@@ -184,7 +170,9 @@ export class DashboardComponent implements OnInit {
   }
 
   loadDomainStats(): void {
-    if (!this.selectedDomainId) return;
+    if (!this.selectedDomainId) {
+      return;
+    }
 
     const domainId = parseInt(this.selectedDomainId);
 
@@ -195,92 +183,131 @@ export class DashboardComponent implements OnInit {
     this.apiService.getTestCasesByDomain(domainId).subscribe(
       (testCases: any[]) => {
         this.domainStats.totalTestCases = testCases.length;
-        this.domainStats.automatedTestCases = testCases.filter(tc => tc.status === 'Automated').length;
-        this.domainStats.inProgressTestCases = testCases.filter(tc => tc.status === 'In Progress').length;
-        this.domainStats.readyTestCases = testCases.filter(tc => tc.status === 'Ready to Automate').length;
-        this.domainStats.completedTestCases = testCases.filter(tc => tc.status === 'Completed').length;
+        this.domainStats.automatedTestCases = testCases.filter(
+          (tc) => tc.status === "Automated",
+        ).length;
+        this.domainStats.inProgressTestCases = testCases.filter(
+          (tc) => tc.status === "In Progress",
+        ).length;
+        this.domainStats.readyTestCases = testCases.filter(
+          (tc) => tc.status === "Ready to Automate",
+        ).length;
+        this.domainStats.completedTestCases = testCases.filter(
+          (tc) => tc.status === "Completed",
+        ).length;
+        this.domainStats.cannotBeAutomated = testCases.filter(
+          (tc) => tc.status === "Cannot be Automated",
+        ).length;
         this.updateStatusChart();
       },
       (error) => {
-        console.error('Error loading domain test case stats:', error);
-      }
+        console.error("Error loading domain test case stats:", error);
+      },
     );
   }
 
   loadProjectTestCaseStats(): void {
-    if (!this.selectedProjectId) return;
+    if (!this.selectedProjectId) {
+      return;
+    }
 
     const projectId = parseInt(this.selectedProjectId);
 
     this.apiService.getTestCasesByProject(projectId).subscribe(
       (testCases: any[]) => {
         this.projectTestCaseStats.total = testCases.length;
-        this.projectTestCaseStats.automated = testCases.filter(tc => tc.status === 'Automated').length;
-        this.projectTestCaseStats.inProgress = testCases.filter(tc => tc.status === 'In Progress').length;
-        this.projectTestCaseStats.ready = testCases.filter(tc => tc.status === 'Ready to Automate').length;
-        this.projectTestCaseStats.completed = testCases.filter(tc => tc.status === 'Completed').length;
+        this.projectTestCaseStats.automated = testCases.filter(
+          (tc) => tc.status === "Automated",
+        ).length;
+        this.projectTestCaseStats.inProgress = testCases.filter(
+          (tc) => tc.status === "In Progress",
+        ).length;
+        this.projectTestCaseStats.ready = testCases.filter(
+          (tc) => tc.status === "Ready to Automate",
+        ).length;
+        this.projectTestCaseStats.completed = testCases.filter(
+          (tc) => tc.status === "Completed",
+        ).length;
+        this.projectTestCaseStats.cannotBeAutomated = testCases.filter(
+          (tc) => tc.status === "Cannot be Automated",
+        ).length;
         this.updateStatusChart();
       },
       (error) => {
-        console.error('Error loading project test case stats:', error);
-      }
+        console.error("Error loading project test case stats:", error);
+      },
     );
   }
 
   createCoverageChart(): void {
-    const ctx = document.getElementById('coverageChart') as HTMLCanvasElement;
-    if (!ctx) return;
+    const ctx = document.getElementById("coverageChart") as HTMLCanvasElement;
+    if (!ctx) {
+      return;
+    }
 
     if (this.coverageChart) {
       this.coverageChart.destroy();
     }
 
     const total = this.dashboardStats.totalTestCases;
-    const automated = this.dashboardStats.automatedTestCases+this.dashboardStats.completedTestCases;
-    const notAutomated = total - automated;
+    const automated =
+      this.dashboardStats.automatedTestCases +
+      this.dashboardStats.completedTestCases;
+    const cannotBeAutomated = this.dashboardStats.cannotBeAutomated;
+    const notAutomated =
+      this.dashboardStats.inProgressTestCases +
+      this.dashboardStats.readyTestCases;
 
     this.coverageChart = new Chart(ctx, {
-      type: 'doughnut',
+      type: "doughnut",
       data: {
-        labels: ['Automated', 'Not Automated'],
-        datasets: [{
-          data: [automated, notAutomated],
-          backgroundColor: ['#28a745', '#dc3545'],
-          borderWidth: 2,
-          borderColor: '#fff'
-        }]
+        labels: ["Automated", "Not Automated", "Cannot be Automated"],
+        datasets: [
+          {
+            data: [automated, notAutomated, cannotBeAutomated],
+            backgroundColor: ["#28a745", "#dc3545", "#807A7A"],
+            borderWidth: 2,
+            borderColor: "#fff",
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'bottom'
+            position: "bottom",
           },
           tooltip: {
             callbacks: {
               label: (context) => {
-                const percentage = total > 0 ? ((context.raw as number / total) * 100).toFixed(1) : '0';
+                const percentage =
+                  total > 0
+                    ? (((context.raw as number) / total) * 100).toFixed(1)
+                    : "0";
+
                 return `${context.label}: ${context.raw} (${percentage}%)`;
-              }
-            }
-          }
-        }
-      }
+              },
+            },
+          },
+        },
+      },
     });
-            this.cd.markForCheck();
+    this.cd.markForCheck();
   }
 
   updateStatusChart(): void {
-    const ctx = document.getElementById('statusChart') as HTMLCanvasElement;
-    if (!ctx) return;
+    const ctx = document.getElementById("statusChart") as HTMLCanvasElement;
+    if (!ctx) {
+      return;
+    }
 
     if (this.statusChart) {
       this.statusChart.destroy();
     }
 
     let data: number[] = [];
-    let title = '';
+    let title = "";
 
     if (this.selectedProjectId && this.selectedProject) {
       // Project-specific data
@@ -288,7 +315,8 @@ export class DashboardComponent implements OnInit {
         this.projectTestCaseStats.ready,
         this.projectTestCaseStats.inProgress,
         this.projectTestCaseStats.automated,
-        this.projectTestCaseStats.completed
+        this.projectTestCaseStats.completed,
+        this.projectTestCaseStats.cannotBeAutomated,
       ];
       title = `${this.selectedProject.name} Test Cases`;
     } else if (this.selectedDomainId && this.selectedDomain) {
@@ -297,25 +325,47 @@ export class DashboardComponent implements OnInit {
         this.domainStats.readyTestCases,
         this.domainStats.inProgressTestCases,
         this.domainStats.automatedTestCases,
-        this.domainStats.completedTestCases
+        this.domainStats.completedTestCases,
+        this.domainStats.cannotBeAutomated,
       ];
       title = `${this.selectedDomain.name} Domain Test Cases`;
     } else {
       this.clearStatusChart();
+
       return;
     }
 
     this.statusChart = new Chart(ctx, {
-      type: 'bar',
+      type: "bar",
       data: {
-        labels: ['Ready to Automate', 'In Progress', 'Automated', 'failed'],
-        datasets: [{
-          label: 'Test Cases',
-          data: data,
-          backgroundColor: ['#17a2b8', '#ffc107', '#28a745', '#dc3545'],
-          borderColor: ['#138496', '#e0a800', '#1e7e34', '#5a32a3'],
-          borderWidth: 1
-        }]
+        labels: [
+          "Ready to Automate",
+          "In Progress",
+          "Automated",
+          "failed",
+          "Cannot be Automated",
+        ],
+        datasets: [
+          {
+            label: "Test Cases",
+            data,
+            backgroundColor: [
+              "#17a2b8",
+              "#ffc107",
+              "#28a745",
+              "#dc3545",
+              "#807A7A",
+            ],
+            borderColor: [
+              "#138496",
+              "#e0a800",
+              "#1e7e34",
+              "#5a32a3",
+              "#807A7A",
+            ],
+            borderWidth: 1,
+          },
+        ],
       },
       options: {
         responsive: true,
@@ -324,23 +374,22 @@ export class DashboardComponent implements OnInit {
           y: {
             beginAtZero: true,
             ticks: {
-              stepSize: 1
-            }
-          }
+              stepSize: 1,
+            },
+          },
         },
         plugins: {
           legend: {
-            display: false
+            display: false,
           },
           title: {
             display: true,
-            text: title
-          }
-        }
-      }
+            text: title,
+          },
+        },
+      },
     });
-            this.cd.markForCheck();
-
+    this.cd.markForCheck();
   }
 
   clearStatusChart(): void {
@@ -356,21 +405,24 @@ export class DashboardComponent implements OnInit {
     } else if (this.selectedDomainId && this.selectedDomain) {
       return `Domain Details: ${this.selectedDomain.name}`;
     }
-    return 'Selection Details';
+
+    return "Selection Details";
   }
 
   getStatusColor(status: string | undefined): string {
-    if (!status) return 'bg-secondary';
+    if (!status) {
+      return "bg-secondary";
+    }
 
     switch (status) {
-      case 'Active':
-        return 'bg-success';
-      case 'Inactive':
-        return 'bg-danger';
-      case 'Completed':
-        return 'bg-primary';
+      case "Active":
+        return "bg-success";
+      case "Inactive":
+        return "bg-danger";
+      case "Completed":
+        return "bg-primary";
       default:
-        return 'bg-secondary';
+        return "bg-secondary";
     }
   }
 

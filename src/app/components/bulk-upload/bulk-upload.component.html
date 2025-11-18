@@ -1,221 +1,289 @@
-<p-dialog [modal]="true" appendTo="body" [(visible)]="isVisible" [closable]="false" (click)="closeModal()">
-     <ng-template pTemplate="header">
-        <div>
-            <h2>
-                <i class="fas fa-upload me-2"></i>
-                Bulk Upload Test Cases
-            </h2>
-            <button type="button" class="close-btn" (click)="closeModal()">
-                <i class="fas fa-times"></i>
-            </button>
+<p-dialog
+  [modal]="true"
+  appendTo="body"
+  [(visible)]="isVisible"
+  [closable]="false"
+  (click)="closeModal()"
+>
+  <ng-template pTemplate="header">
+    <div>
+      <h2>
+        <i class="fas fa-upload me-2"></i>
+        Bulk Upload Test Cases
+      </h2>
+      <button type="button" class="close-btn" (click)="closeModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </ng-template>
+  <div>
+    <!-- Upload Form -->
+    <form [formGroup]="uploadForm" *ngIf="!showResult">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="domainId" class="form-label">Select Domain *</label>
+          <select
+            class="form-control"
+            id="domainId"
+            formControlName="domainId"
+            [class.is-invalid]="
+              uploadForm.get('domainId')?.invalid &&
+              uploadForm.get('domainId')?.touched
+            "
+          >
+            <option value="">Choose Domain</option>
+            <option *ngFor="let domain of domains" [value]="domain.id">
+              {{ domain.name }}
+            </option>
+          </select>
+          <div
+            class="invalid-feedback"
+            *ngIf="
+              uploadForm.get('domainId')?.invalid &&
+              uploadForm.get('domainId')?.touched
+            "
+          >
+            Please select a domain.
+          </div>
         </div>
-     </ng-template>
-        <div>
-            <!-- Upload Form -->
-            <form [formGroup]="uploadForm" *ngIf="!showResult">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="domainId" class="form-label">Select Domain *</label>
-                        <select
-                                class="form-control"
-                                id="domainId"
-                                formControlName="domainId"
-                                [class.is-invalid]="uploadForm.get('domainId')?.invalid && uploadForm.get('domainId')?.touched"
-                        >
-                            <option value="">Choose Domain</option>
-                            <option *ngFor="let domain of domains" [value]="domain.id">
-                                {{ domain.name }}
-                            </option>
-                        </select>
-                        <div class="invalid-feedback" *ngIf="uploadForm.get('domainId')?.invalid && uploadForm.get('domainId')?.touched">
-                            Please select a domain.
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="projectId" class="form-label">Select Application *</label>
-                        <select
-                                class="form-control"
-                                id="projectId"
-                                formControlName="projectId"
-                                [class.is-invalid]="uploadForm.get('projectId')?.invalid && uploadForm.get('projectId')?.touched"
-                                [disabled]="!uploadForm.get('domainId')?.value"
-                        >
-                            <option value="">Choose Application</option>
-                            <option *ngFor="let project of filteredProjects" [value]="project.id">
-                                {{ project.name }}
-                            </option>
-                        </select>
-                        <div class="invalid-feedback" *ngIf="uploadForm.get('projectId')?.invalid && uploadForm.get('projectId')?.touched">
-                            Please select a project.
-                        </div>
-                        <small class="form-text" *ngIf="!uploadForm.get('domainId')?.value">
-                            Please select a domain first to see available projects.
-                        </small>
-                    </div>
+        <div class="form-group">
+          <label for="projectId" class="form-label">Select Application *</label>
+          <select
+            class="form-control"
+            id="projectId"
+            formControlName="projectId"
+            [class.is-invalid]="
+              uploadForm.get('projectId')?.invalid &&
+              uploadForm.get('projectId')?.touched
+            "
+            [disabled]="!uploadForm.get('domainId')?.value"
+          >
+            <option value="">Choose Application</option>
+            <option
+              *ngFor="let project of filteredProjects"
+              [value]="project.id"
+            >
+              {{ project.name }}
+            </option>
+          </select>
+          <div
+            class="invalid-feedback"
+            *ngIf="
+              uploadForm.get('projectId')?.invalid &&
+              uploadForm.get('projectId')?.touched
+            "
+          >
+            Please select a project.
+          </div>
+          <small class="form-text" *ngIf="!uploadForm.get('domainId')?.value">
+            Please select a domain first to see available projects.
+          </small>
+        </div>
 
-                    <div class="form-group">
-                        <label for="defaultTesterId" class="form-label">Default Tester *</label>
-                        <select
-                                class="form-control"
-                                id="defaultTesterId"
-                                formControlName="defaultTesterId"
-                                [class.is-invalid]="uploadForm.get('defaultTesterId')?.invalid && uploadForm.get('defaultTesterId')?.touched"
-                        >
-                            <option value="">Choose Default Tester</option>
-                            <option *ngFor="let tester of testers" [value]="tester.id">
-                                {{ tester.name }} ({{ tester.role }})
-                            </option>
-                        </select>
-                        <div class="invalid-feedback" *ngIf="uploadForm.get('defaultTesterId')?.invalid && uploadForm.get('defaultTesterId')?.touched">
-                            Please select a default tester.
-                        </div>
-                        <small class="form-text">
-                            This tester will be assigned to test cases that don't have a specific tester mentioned in the Excel file.
-                        </small>
-                    </div>
-                </div>
+        <div class="form-group">
+          <label for="defaultTesterId" class="form-label"
+            >Default Tester *</label
+          >
+          <select
+            class="form-control"
+            id="defaultTesterId"
+            formControlName="defaultTesterId"
+            [class.is-invalid]="
+              uploadForm.get('defaultTesterId')?.invalid &&
+              uploadForm.get('defaultTesterId')?.touched
+            "
+          >
+            <option value="">Choose Default Tester</option>
+            <option *ngFor="let tester of testers" [value]="tester.id">
+              {{ tester.name }} ({{ tester.role }})
+            </option>
+          </select>
+          <div
+            class="invalid-feedback"
+            *ngIf="
+              uploadForm.get('defaultTesterId')?.invalid &&
+              uploadForm.get('defaultTesterId')?.touched
+            "
+          >
+            Please select a default tester.
+          </div>
+          <small class="form-text">
+            This tester will be assigned to test cases that don't have a
+            specific tester mentioned in the Excel file.
+          </small>
+        </div>
+      </div>
 
-                <!-- Template Download Section -->
-                <div class="template-section">
-                    <div class="template-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Need a template?</strong> Download the Excel template to see the required format.
-                    </div>
-                    <button
-                            type="button"
-                            class="template-btn"
-                            (click)="downloadTemplate()"
-                            [disabled]="!uploadForm.get('projectId')?.value"
-                    >
-                        <i class="fas fa-download me-1"></i>
-                        Download Template
-                    </button>
-                </div>
+      <!-- Template Download Section -->
+      <div class="template-section">
+        <div class="template-info">
+          <i class="fas fa-info-circle me-2"></i>
+          <strong>Need a template?</strong> Download the Excel template to see
+          the required format.
+        </div>
+        <button
+          type="button"
+          class="template-btn"
+          (click)="downloadTemplate()"
+          [disabled]="!uploadForm.get('projectId')?.value"
+        >
+          <i class="fas fa-download me-1"></i>
+          Download Template
+        </button>
+      </div>
 
-                <!-- File Upload Section -->
-                <div class="file-upload-section">
-                    <div
-                            class="file-upload-area"
-                            [class.drag-over]="dragOver"
-                            (dragover)="onDragOver($event)"
-                            (dragleave)="onDragLeave($event)"
-                            (drop)="onDrop($event)"
-                            (click)="fileInput.click()"
-                    >
-                        <input
-                                #fileInput
-                                type="file"
-                                accept=".xlsx,.xls"
-                                (change)="onFileSelected($event)"
-                                hidden
-                        >
+      <!-- File Upload Section -->
+      <div class="file-upload-section">
+        <div
+          class="file-upload-area"
+          [class.drag-over]="dragOver"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          (click)="fileInput.click()"
+        >
+          <input
+            #fileInput
+            type="file"
+            accept=".xlsx,.xls"
+            (change)="onFileSelected($event)"
+            hidden
+          />
 
-                        <div class="upload-placeholder" *ngIf="!selectedFile">
-                            <i class="fas fa-cloud-upload-alt upload-icon"></i>
-                            <h5>Drop Excel file here or click to browse</h5>
-                            <p>Supports .xlsx and .xls files (max 5MB)</p>
-                        </div>
+          <div class="upload-placeholder" *ngIf="!selectedFile">
+            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+            <h5>Drop Excel file here or click to browse</h5>
+            <p>Supports .xlsx and .xls files (max 5MB)</p>
+          </div>
 
-                        <div class="file-selected" *ngIf="selectedFile">
-                            <i class="fas fa-file-excel file-icon"></i>
-                            <div class="file-details">
-                                <h6>{{ selectedFile!.name }}</h6>
-                                <p>{{ (selectedFile!.size / 1024 / 1024).toFixed(2) }} MB</p>
-                            </div>
-                            <button
-                                    type="button"
-                                    class="remove-btn"
-                                    (click)="removeFile(); $event.stopPropagation()"
-                            >
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Upload Instructions -->
-                <div class="file-info">
-                    <h6><i class="fas fa-list-ul me-2"></i>Excel File Requirements:</h6>
-                    <ul>
-                        <li>Column headers must be: <strong>Test Case Title</strong>, <strong>Description</strong>, <strong>Test Steps</strong>, <strong>Expected Result</strong>, <strong>Priority</strong>, <strong>Status</strong>, <strong>Assigned Tester</strong></li>
-                        <li>Test Case Title and Description are required fields</li>
-                        <li>Priority must be: High, Medium, or Low</li>
-                        <li>Status must be: Ready to Automate, Automated, In Progress, or Completed</li>
-                        <li>Assigned Tester should match existing tester names (optional)</li>
-                    </ul>
-                </div>
-            </form>
-
-            <!-- Upload Result -->
-            <div class="upload-results" *ngIf="showResult && uploadResult">
-                <div class="result-header" [class.success]="uploadResult!.success" [class.error]="!uploadResult!.success">
-                    <i class="fas" [class.fa-check-circle]="uploadResult!.success" [class.fa-exclamation-triangle]="!uploadResult!.success"></i>
-                    <h3>{{ uploadResult!.success ? 'Upload Completed' : 'Upload Completed with Errors' }}</h3>
-
-                    <div class="result-summary">
-                        <span>Total: {{ uploadResult!.totalRows }}</span>
-                        <span class="success">Success: {{ uploadResult!.successCount }}</span>
-                        <span class="error">Errors: {{ uploadResult!.errorCount }}</span>
-                        <span class="error">Duplicates: {{ uploadResult!.duplicates.length }}</span>
-                    </div>
-                </div>
-
-                <!-- Error Details -->
-                <div class="error-list" *ngIf="uploadResult!.errors.length > 0">
-                    <h4>Errors:</h4>
-                    <ul>
-                        <li *ngFor="let error of uploadResult!.errors">{{ error }}</li>
-                    </ul>
-                </div>
-
-                <!-- Duplicate Details -->
-                <div class="duplicate-list" *ngIf="uploadResult!.duplicates.length > 0">
-                    <h4>Duplicates:</h4>
-                    <ul>
-                        <li *ngFor="let duplicate of uploadResult!.duplicates">{{ duplicate }}</li>
-                    </ul>
-                </div>
+          <div class="file-selected" *ngIf="selectedFile">
+            <i class="fas fa-file-excel file-icon"></i>
+            <div class="file-details">
+              <h6>{{ selectedFile!.name }}</h6>
+              <p>{{ (selectedFile!.size / 1024 / 1024).toFixed(2) }} MB</p>
             </div>
-
-            <!-- Loading State -->
-            <div class="loading-state" *ngIf="uploading">
-                <div class="loading-content">
-                    <div class="spinner"></div>
-                    <h5>Processing your file...</h5>
-                    <p>Please wait while we upload your test cases.</p>
-                </div>
-            </div>
+            <button
+              type="button"
+              class="remove-btn"
+              (click)="removeFile(); $event.stopPropagation()"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
         </div>
+      </div>
 
-        <div class="modal-footer">
-            <button
-                    type="button"
-                    class="cancel-btn"
-                    (click)="closeModal()"
-                    [disabled]="uploading"
-            >
-                {{ showResult ? 'Close' : 'Cancel' }}
-            </button>
-            <button
-                    type="button"
-                    class="upload-btn"
-                    (click)="uploadFile()"
-                    [disabled]="!selectedFile || !uploadForm.valid || uploading"
-                    *ngIf="!showResult"
-            >
-                <span *ngIf="uploading" class="spinner-small"></span>
-                <i class="fas fa-upload me-2" *ngIf="!uploading"></i>
-                {{ uploading ? 'Uploading...' : 'Upload Test Cases' }}
-            </button>
-            <button
-                    type="button"
-                    class="done-btn"
-                    (click)="closeModal()"
-                    *ngIf="showResult"
-            >
-                <i class="fas fa-check me-2"></i>
-                Done
-            </button>
+      <!-- Upload Instructions -->
+      <div class="file-info">
+        <h6><i class="fas fa-list-ul me-2"></i>Excel File Requirements:</h6>
+        <ul>
+          <li>
+            Column headers must be: <strong>Test Case Title</strong>,
+            <strong>Description</strong>, <strong>Test Steps</strong>,
+            <strong>Expected Result</strong>, <strong>Priority</strong>,
+            <strong>Status</strong>, <strong>Assigned Tester</strong>,
+            <strong>Test Case Type</strong>, <strong>Tool Type</strong>,
+            <strong>Manual Tester</strong>
+          </li>
+          <li>Test Case Title and Description are required fields</li>
+          <li>Priority must be: High, Medium, or Low</li>
+          <li>
+            Status must be: Ready to Automate, Automated, In Progress, or
+            Completed
+          </li>
+          <li>Assigned Tester should match existing tester names (optional)</li>
+        </ul>
+      </div>
+    </form>
+
+    <!-- Upload Result -->
+    <div class="upload-results" *ngIf="showResult && uploadResult">
+      <div
+        class="result-header"
+        [class.success]="uploadResult!.success"
+        [class.error]="!uploadResult!.success"
+      >
+        <i
+          class="fas"
+          [class.fa-check-circle]="uploadResult!.success"
+          [class.fa-exclamation-triangle]="!uploadResult!.success"
+        ></i>
+        <h3>
+          {{
+            uploadResult!.success
+              ? "Upload Completed"
+              : "Upload Completed with Errors"
+          }}
+        </h3>
+
+        <div class="result-summary">
+          <span>Total: {{ uploadResult!.totalRows }}</span>
+          <span class="success">Success: {{ uploadResult!.successCount }}</span>
+          <span class="error">Errors: {{ uploadResult!.errorCount }}</span>
+          <span class="error"
+            >Duplicates: {{ uploadResult!.duplicates.length }}</span
+          >
         </div>
+      </div>
+
+      <!-- Error Details -->
+      <div class="error-list" *ngIf="uploadResult!.errors.length > 0">
+        <h4>Errors:</h4>
+        <ul>
+          <li *ngFor="let error of uploadResult!.errors">{{ error }}</li>
+        </ul>
+      </div>
+
+      <!-- Duplicate Details -->
+      <div class="duplicate-list" *ngIf="uploadResult!.duplicates.length > 0">
+        <h4>Duplicates:</h4>
+        <ul>
+          <li *ngFor="let duplicate of uploadResult!.duplicates">
+            {{ duplicate }}
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="uploading">
+      <div class="loading-content">
+        <div class="spinner"></div>
+        <h5>Processing your file...</h5>
+        <p>Please wait while we upload your test cases.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="cancel-btn"
+      (click)="closeModal()"
+      [disabled]="uploading"
+    >
+      {{ showResult ? "Close" : "Cancel" }}
+    </button>
+    <button
+      type="button"
+      class="upload-btn"
+      (click)="uploadFile()"
+      [disabled]="!selectedFile || !uploadForm.valid || uploading"
+      *ngIf="!showResult"
+    >
+      <span *ngIf="uploading" class="spinner-small"></span>
+      <i class="fas fa-upload me-2" *ngIf="!uploading"></i>
+      {{ uploading ? "Uploading..." : "Upload Test Cases" }}
+    </button>
+    <button
+      type="button"
+      class="done-btn"
+      (click)="closeModal()"
+      *ngIf="showResult"
+    >
+      <i class="fas fa-check me-2"></i>
+      Done
+    </button>
+  </div>
 </p-dialog>

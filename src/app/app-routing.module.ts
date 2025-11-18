@@ -2,54 +2,65 @@ import { NgModule } from "@angular/core";
 import { RouterModule, Routes } from "@angular/router";
 import { DashboardComponent } from "./components/dashboard/dashboard.component";
 import { TesterRegistrationComponent } from "./components/tester-registration/tester-registration.component";
+import { TesterMetricsComponent } from "./components/tester-metrics/tester-metrics.component";
 import { ProjectManagementComponent } from "./components/project-management/project-management.component";
 import { TestCaseTrackingComponent } from "./components/test-case-tracking/test-case-tracking.component";
 import { BulkUploadComponent } from "./components/bulk-upload/bulk-upload.component";
 import { JenkinsResultsComponent } from "./components/jenkins-results/jenkins-results.component";
 import { ManualCoverageComponent } from "./components/manual-coverage/manual-coverage.component";
-import { LoginDashboardComponent } from "./components/login-dashboard/login-dashboard.component";
-import { AuthGuard } from "./auth.guard";
+import { authGuard } from "./auth.guard";
+import { UnauthorizedComponent } from "./components/unauthorized/unauthorized.component";
+import { OktaAuthGuard, OktaCallbackComponent } from "@okta/okta-angular";
+import { AccessGuard } from "./access.guard";
 
 const routes: Routes = [
-  { path: "", redirectTo: "/login", pathMatch: "full" },
   {
     path: "dashboard",
     component: DashboardComponent,
-    canActivate: [AuthGuard],
+    canActivate: [OktaAuthGuard, AccessGuard],
   },
   {
     path: "testers",
     component: TesterRegistrationComponent,
-    canActivate: [AuthGuard],
+    canActivate: [OktaAuthGuard, AccessGuard],
+  },
+  {
+    path: "testers/:id/metrics",
+    component: TesterMetricsComponent,
+    canActivate: [OktaAuthGuard, AccessGuard],
   },
   {
     path: "projects",
     component: ProjectManagementComponent,
-    canActivate: [AuthGuard],
+    canActivate: [OktaAuthGuard, AccessGuard],
   },
   {
     path: "test-cases",
     component: TestCaseTrackingComponent,
-    canActivate: [AuthGuard],
+    canActivate: [OktaAuthGuard, AccessGuard],
   },
   {
     path: "manual-coverage",
     component: ManualCoverageComponent,
-    canActivate: [AuthGuard],
+    canActivate: [OktaAuthGuard, AccessGuard],
   },
   {
     path: "bulk-upload",
     component: BulkUploadComponent,
-    canActivate: [AuthGuard],
+    canActivate: [OktaAuthGuard, AccessGuard],
   },
   {
     path: "jenkins-results",
     component: JenkinsResultsComponent,
-    canActivate: [AuthGuard],
+    canActivate: [OktaAuthGuard, AccessGuard],
   },
-  { path: "login", component: LoginDashboardComponent },
+  {
+    path: "login/callback",
+    component: OktaCallbackComponent,
+  },
+  { path: "unauthorized", component: UnauthorizedComponent },
+    { path: "**", redirectTo: "/dashboard", pathMatch: "full" },
 
-  { path: "**", redirectTo: "/login" },
 ];
 
 @NgModule({

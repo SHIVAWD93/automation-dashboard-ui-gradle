@@ -82,10 +82,10 @@
               <div class="col-md-6">
                 <label for="domainSelect" class="form-label">Domain</label>
                 <select
-                        id="domainSelect"
-                        class="form-select form-select-sm"
-                        [(ngModel)]="selectedDomainId"
-                        (change)="onDomainChange()"
+                  id="domainSelect"
+                  class="form-select form-select-sm"
+                  [(ngModel)]="selectedDomainId"
+                  (change)="onDomainChange()"
                 >
                   <option value="">Select Domain</option>
                   <option *ngFor="let domain of domains" [value]="domain.id">
@@ -94,16 +94,21 @@
                 </select>
               </div>
               <div class="col-md-6">
-                <label for="projectSelect" class="form-label">Application</label>
+                <label for="projectSelect" class="form-label"
+                  >Application</label
+                >
                 <select
-                        id="projectSelect"
-                        class="form-select form-select-sm"
-                        [(ngModel)]="selectedProjectId"
-                        (change)="onProjectChange()"
-                        [disabled]="!selectedDomainId"
+                  id="projectSelect"
+                  class="form-select form-select-sm"
+                  [(ngModel)]="selectedProjectId"
+                  (change)="onProjectChange()"
+                  [disabled]="!selectedDomainId"
                 >
                   <option value="">All Applications</option>
-                  <option *ngFor="let project of filteredProjects" [value]="project.id">
+                  <option
+                    *ngFor="let project of filteredProjects"
+                    [value]="project.id"
+                  >
                     {{ project.name }}
                   </option>
                 </select>
@@ -136,123 +141,180 @@
           </h5>
         </div>
         <div class="card-body">
-          <div class="row" *ngIf="selectedProjectId && selectedProject; else domainDetails">
+          <div
+            class="row"
+            *ngIf="selectedProjectId && selectedProject; else domainDetails"
+          >
             <!-- Project Details -->
             <div class="col-md-6">
               <h6 class="text-primary">Project Information</h6>
               <p><strong>Name:</strong> {{ selectedProject.name }}</p>
-              <p><strong>Description:</strong> {{ selectedProject.description }}</p>
-              <p><strong>Domain:</strong> {{ selectedProject.domain?.name || 'N/A' }}</p>
-              <p><strong>Status:</strong>
-                <span class="badge" [class]="getStatusColor(selectedProject.status)">
+              <p>
+                <strong>Description:</strong> {{ selectedProject.description }}
+              </p>
+              <p>
+                <strong>Domain:</strong>
+                {{ selectedProject.domain?.name || "N/A" }}
+              </p>
+              <p>
+                <strong>Status:</strong>
+                <span
+                  class="badge"
+                  [class]="getStatusColor(selectedProject.status)"
+                >
                   {{ selectedProject.status }}
                 </span>
               </p>
-              <p><strong>Created:</strong> {{ selectedProject.createdAt | date:'medium' }}</p>
+              <p>
+                <strong>Created:</strong>
+                {{ selectedProject.createdAt | date: "medium" }}
+              </p>
             </div>
             <div class="col-md-6">
               <h6 class="text-success">Test Case Statistics</h6>
               <div class="stats-grid">
                 <div class="stat-item">
-                  <span class="stat-value">{{ projectTestCaseStats.total }}</span>
+                  <span class="stat-value">{{
+                    projectTestCaseStats.total
+                  }}</span>
                   <span class="stat-label">Total Test Cases</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value text-info">{{ projectTestCaseStats.ready }}</span>
+                  <span class="stat-value text-info">{{
+                    projectTestCaseStats.ready
+                  }}</span>
                   <span class="stat-label">Ready to Automate</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value text-warning">{{ projectTestCaseStats.inProgress }}</span>
+                  <span class="stat-value text-warning">{{
+                    projectTestCaseStats.inProgress
+                  }}</span>
                   <span class="stat-label">In Progress</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value text-success">{{ projectTestCaseStats.automated }}</span>
+                  <span class="stat-value text-success">{{
+                    projectTestCaseStats.automated
+                  }}</span>
                   <span class="stat-label">Automated</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value text-failed">{{ projectTestCaseStats.completed }}</span>
+                  <span class="stat-value text-failed">{{
+                    projectTestCaseStats.completed
+                  }}</span>
                   <span class="stat-label">Failed</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value text-failed">{{
+                    projectTestCaseStats.cannotBeAutomated
+                  }}</span>
+                  <span class="stat-label">Cannot be Automated</span>
                 </div>
               </div>
             </div>
-<!--            <div class="stats-container">-->
-<!--              <div class="stats-header">-->
-<!--                <h2 class="stats-title">-->
-<!--                  <div class="stats-icon">📊</div>-->
-<!--                  Test Case Analytics-->
-<!--                </h2>-->
-<!--                <p class="stats-subtitle">Real-time automation progress tracking</p>-->
-<!--              </div>-->
+            <!--            <div class="stats-container">-->
+            <!--              <div class="stats-header">-->
+            <!--                <h2 class="stats-title">-->
+            <!--                  <div class="stats-icon">📊</div>-->
+            <!--                  Test Case Analytics-->
+            <!--                </h2>-->
+            <!--                <p class="stats-subtitle">Real-time automation progress tracking</p>-->
+            <!--              </div>-->
 
-<!--              <div class="stats-grid">-->
-<!--                <div class="stat-card total">-->
-<!--                  <div class="stat-icon-small">📋</div>-->
-<!--                  <span class="stat-value">{{ projectTestCaseStats.total }}</span>-->
-<!--                  <span class="stat-label">Total Cases</span>-->
-<!--                </div>-->
+            <!--              <div class="stats-grid">-->
+            <!--                <div class="stat-card total">-->
+            <!--                  <div class="stat-icon-small">📋</div>-->
+            <!--                  <span class="stat-value">{{ projectTestCaseStats.total }}</span>-->
+            <!--                  <span class="stat-label">Total Cases</span>-->
+            <!--                </div>-->
 
-<!--                <div class="stat-card automated">-->
-<!--                  <div class="stat-icon-small">✅</div>-->
-<!--                  <span class="stat-value">{{ projectTestCaseStats.automated }}</span>-->
-<!--                  <span class="stat-label">Automated</span>-->
-<!--                </div>-->
+            <!--                <div class="stat-card automated">-->
+            <!--                  <div class="stat-icon-small">✅</div>-->
+            <!--                  <span class="stat-value">{{ projectTestCaseStats.automated }}</span>-->
+            <!--                  <span class="stat-label">Automated</span>-->
+            <!--                </div>-->
 
-<!--                <div class="stat-card progress">-->
-<!--                  <div class="stat-icon-small">⚡</div>-->
-<!--                  <span class="stat-value">{{ projectTestCaseStats.inProgress }}</span>-->
-<!--                  <span class="stat-label">In Progress</span>-->
-<!--                </div>-->
+            <!--                <div class="stat-card progress">-->
+            <!--                  <div class="stat-icon-small">⚡</div>-->
+            <!--                  <span class="stat-value">{{ projectTestCaseStats.inProgress }}</span>-->
+            <!--                  <span class="stat-label">In Progress</span>-->
+            <!--                </div>-->
 
-<!--                <div class="stat-card ready">-->
-<!--                  <div class="stat-icon-small">🚀</div>-->
-<!--                  <span class="stat-value">{{ projectTestCaseStats.ready }}</span>-->
-<!--                  <span class="stat-label">Ready</span>-->
-<!--                </div>-->
-<!--              </div>-->
-<!--            </div>-->
-
+            <!--                <div class="stat-card ready">-->
+            <!--                  <div class="stat-icon-small">🚀</div>-->
+            <!--                  <span class="stat-value">{{ projectTestCaseStats.ready }}</span>-->
+            <!--                  <span class="stat-label">Ready</span>-->
+            <!--                </div>-->
+            <!--              </div>-->
+            <!--            </div>-->
           </div>
-
 
           <ng-template #domainDetails>
             <!-- Domain Details -->
             <div class="col-md-6">
               <h6 class="text-primary">Domain Information</h6>
-              <p><strong>Name:</strong> {{ selectedDomain?.name || 'N/A' }}</p>
-              <p><strong>Description:</strong> {{ selectedDomain?.description || 'N/A' }}</p>
-              <p><strong>Status:</strong>
-                <span class="badge" [class]="getStatusColor(selectedDomain?.status)">
-                  {{ selectedDomain?.status || 'N/A' }}
+              <p><strong>Name:</strong> {{ selectedDomain?.name || "N/A" }}</p>
+              <p>
+                <strong>Description:</strong>
+                {{ selectedDomain?.description || "N/A" }}
+              </p>
+              <p>
+                <strong>Status:</strong>
+                <span
+                  class="badge"
+                  [class]="getStatusColor(selectedDomain?.status)"
+                >
+                  {{ selectedDomain?.status || "N/A" }}
                 </span>
               </p>
-              <p><strong>Created:</strong> {{ selectedDomain?.createdAt | date:'medium' }}</p>
+              <p>
+                <strong>Created:</strong>
+                {{ selectedDomain?.createdAt | date: "medium" }}
+              </p>
             </div>
             <div class="col-md-6">
               <h6 class="text-success">Domain Statistics</h6>
               <div class="stats-grid">
                 <div class="stat-item">
-                  <span class="stat-value">{{ domainStats.totalProjects }}</span>
+                  <span class="stat-value">{{
+                    domainStats.totalProjects
+                  }}</span>
                   <span class="stat-label">Total Projects</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value">{{ domainStats.totalTestCases }}</span>
+                  <span class="stat-value">{{
+                    domainStats.totalTestCases
+                  }}</span>
                   <span class="stat-label">Total Test Cases</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value text-info">{{ domainStats.readyTestCases }}</span>
+                  <span class="stat-value text-info">{{
+                    domainStats.readyTestCases
+                  }}</span>
                   <span class="stat-label">Ready to Automate</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value text-warning">{{ domainStats.inProgressTestCases }}</span>
+                  <span class="stat-value text-warning">{{
+                    domainStats.inProgressTestCases
+                  }}</span>
                   <span class="stat-label">In Progress</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value text-success">{{ domainStats.automatedTestCases }}</span>
+                  <span class="stat-value text-success">{{
+                    domainStats.automatedTestCases
+                  }}</span>
                   <span class="stat-label">Automated</span>
                 </div>
                 <div class="stat-item">
-                  <span class="stat-value text-success">{{ domainStats.completedTestCases }}</span>
+                  <span class="stat-value text-success">{{
+                    domainStats.completedTestCases
+                  }}</span>
                   <span class="stat-label">Failed</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-value text-warning">{{
+                    domainStats.cannotBeAutomated
+                  }}</span>
+                  <span class="stat-label">Cannot Be Automated</span>
                 </div>
               </div>
             </div>

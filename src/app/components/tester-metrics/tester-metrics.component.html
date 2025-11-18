@@ -1,0 +1,696 @@
+<div class="tester-metrics-container" *ngIf="!loading">
+  <!-- Header Section -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card header-card">
+        <div class="card-body">
+          <div
+            class="d-flex justify-content-between align-items-start flex-wrap"
+          >
+            <div class="d-flex align-items-center mb-3 mb-md-0">
+              <div class="profile-image-container">
+                <img
+                  [src]="
+                    tester?.profileImage
+                      ? 'data:image/png;base64,' + tester?.profileImage
+                      : '/assets/user.png'
+                  "
+                  [alt]="tester?.name || 'Tester'"
+                  class="profile-image-large"
+                />
+              </div>
+              <div class="pl-2">
+                <h2 class="card-title mb-2">
+                  <i class="fas fa-user-chart me-2"></i>
+                  {{ tester?.name || "Tester" }}
+                </h2>
+                <div class="d-flex align-items-center mb-2">
+                  <span
+                    class="badge"
+                    [class]="getRoleColor(tester?.role || '')"
+                  >
+                    {{ tester?.role || "Unknown" }}
+                  </span>
+                  <span class="ms-2 text-light">
+                    {{ tester?.gender || "N/A" }}
+                  </span>
+                </div>
+                <p class="card-text text-light small mb-0">
+                  <i class="fas fa-calendar-alt me-1"></i>
+                  Registered: {{ tester?.createdAt | date: "mediumDate" }}
+                </p>
+              </div>
+            </div>
+            <div class="header-actions" *ngIf="canAssignTasks">
+              <button
+                class="btn btn-outline-light me-2 mb-2"
+                (click)="assignTestCase()"
+              >
+                <i class="fas fa-plus me-1"></i>
+                Assign Test Case
+              </button>
+              <button
+                class="btn btn-outline-light me-2 mb-2"
+                (click)="assignJenkinsJob()"
+              >
+                <i class="fas fa-cog me-1"></i>
+                Assign Jenkins Job
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <ul class="nav nav-tabs custom-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            [class.active]="activeTab === 'overview'"
+            (click)="setActiveTab('overview')"
+          >
+            <i class="fas fa-chart-pie me-2"></i>
+            Overview
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            [class.active]="activeTab === 'testcases'"
+            (click)="setActiveTab('testcases')"
+          >
+            <i class="fas fa-tasks me-2"></i>
+            Test Cases ({{ filteredTestCases.length }})
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            [class.active]="activeTab === 'jenkins'"
+            (click)="setActiveTab('jenkins')"
+          >
+            <i class="fas fa-cogs me-2"></i>
+            Jenkins Jobs ({{ jenkinsJobAssignments.length }})
+          </button>
+        </li>
+        <li class="nav-item" role="presentation" *ngIf="canProvideFeedback">
+          <button
+            class="nav-link"
+            [class.active]="activeTab === 'feedback'"
+            (click)="setActiveTab('feedback')"
+          >
+            <i class="fas fa-comments me-2"></i>
+            Feedback
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Overview Tab -->
+  <div class="tab-content mt-4" *ngIf="activeTab === 'overview'">
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="card stats-card h-100">
+          <div class="card-body text-center">
+            <div class="stats-icon-wrapper mb-3">
+              <i class="fas fa-tasks stats-icon text-primary"></i>
+            </div>
+            <h3 class="stats-number mb-2">
+              {{ testerMetrics.totalTestCases }}
+            </h3>
+            <p class="stats-label text-muted mb-0">Total Test Cases</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="card stats-card h-100">
+          <div class="card-body text-center">
+            <div class="stats-icon-wrapper mb-3">
+              <i class="fas fa-robot stats-icon text-success"></i>
+            </div>
+            <h3 class="stats-number mb-2">
+              {{ testerMetrics.automatedTestCases }}
+            </h3>
+            <p class="stats-label text-muted mb-0">Automated</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="card stats-card h-100">
+          <div class="card-body text-center">
+            <div class="stats-icon-wrapper mb-3">
+              <i class="fas fa-hand-paper stats-icon text-info"></i>
+            </div>
+            <h3 class="stats-number mb-2">
+              {{ testerMetrics.manualTestCases }}
+            </h3>
+            <p class="stats-label text-muted mb-0">Manual</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="card stats-card h-100">
+          <div class="card-body text-center">
+            <div class="stats-icon-wrapper mb-3">
+              <i class="fas fa-clock stats-icon text-warning"></i>
+            </div>
+            <h3 class="stats-number mb-2">
+              {{ testerMetrics.inProgressTestCases }}
+            </h3>
+            <p class="stats-label text-muted mb-0">In Progress</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card chart-card h-100">
+          <div class="card-header">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-chart-pie me-2"></i>
+              Test Case Progress
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="progressChart"></canvas>
+            </div>
+            <div
+              class="chart-legend mt-3"
+              *ngIf="testerMetrics.totalTestCases > 0"
+            >
+              <div class="row text-center">
+                <div class="col-4">
+                  <div class="legend-item">
+                    <span class="legend-color bg-success"></span>
+                    <small
+                      >Automated: {{ testerMetrics.automatedTestCases }}</small
+                    >
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="legend-item">
+                    <span class="legend-color bg-info"></span>
+                    <small>Manual: {{ testerMetrics.manualTestCases }}</small>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="legend-item">
+                    <span class="legend-color bg-warning"></span>
+                    <small
+                      >In Progress:
+                      {{ testerMetrics.inProgressTestCases }}</small
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card chart-card h-100">
+          <div class="card-header">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-chart-line me-2"></i>
+              Automation Trend (Last 6 Months)
+            </h5>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="trendChart"></canvas>
+            </div>
+            <div
+              class="text-center mt-3"
+              *ngIf="testerMetrics.totalTestCases === 0"
+            >
+              <small class="text-muted"
+                >No data available for trend analysis</small
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Cases Tab -->
+  <div class="tab-content mt-4" *ngIf="activeTab === 'testcases'">
+    <div class="card">
+      <div class="card-header">
+        <div class="filter-controls">
+          <h5 class="card-title mb-3">
+            <i class="fas fa-filter me-2"></i>
+            Test Case Assignments
+          </h5>
+
+          <div class="filter-row">
+            <div class="row g-3">
+              <div class="col-lg-3 col-md-6">
+                <label class="form-label">Start Date</label>
+                <input
+                  type="date"
+                  class="form-control form-control-sm"
+                  [(ngModel)]="dateRangeFilter.startDate"
+                  (change)="onFilterChange()"
+                />
+              </div>
+              <div class="col-lg-3 col-md-6">
+                <label class="form-label">End Date</label>
+                <input
+                  type="date"
+                  class="form-control form-control-sm"
+                  [(ngModel)]="dateRangeFilter.endDate"
+                  (change)="onFilterChange()"
+                />
+              </div>
+              <div class="col-lg-3 col-md-6">
+                <label class="form-label">Project</label>
+                <select
+                  class="form-select form-select-sm"
+                  [(ngModel)]="projectFilter"
+                  (change)="onFilterChange()"
+                >
+                  <option value="">All Projects</option>
+                  <option
+                    *ngFor="let project of uniqueProjects"
+                    [value]="project"
+                  >
+                    {{ project }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-lg-3 col-md-6">
+                <label class="form-label">Status</label>
+                <select
+                  class="form-select form-select-sm"
+                  [(ngModel)]="statusFilter"
+                  (change)="onFilterChange()"
+                >
+                  <option value="">All Statuses</option>
+                  <option
+                    *ngFor="let status of uniqueStatuses"
+                    [value]="status"
+                  >
+                    {{ status }}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-3">
+              <button
+                class="btn btn-outline-secondary btn-sm"
+                (click)="resetFilters()"
+              >
+                <i class="fas fa-undo me-1"></i>
+                Reset Filters
+              </button>
+              <span class="ms-3 text-muted small">
+                Showing {{ filteredTestCases.length }} of
+                {{ testCaseAssignments.length }} test cases
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table
+          class="table table-hover mb-0"
+          *ngIf="filteredTestCases.length > 0; else noTestCases"
+        >
+          <thead class="table-header">
+            <tr>
+              <th
+                (click)="sortTable('title')"
+                [class.sorted]="isSorted('title')"
+                class="sortable"
+              >
+                Title <i [class]="getSortIcon('title')"></i>
+              </th>
+              <th
+                (click)="sortTable('projectName')"
+                [class.sorted]="isSorted('projectName')"
+                class="sortable"
+              >
+                Project <i [class]="getSortIcon('projectName')"></i>
+              </th>
+              <th
+                (click)="sortTable('status')"
+                [class.sorted]="isSorted('status')"
+                class="sortable"
+              >
+                Status <i [class]="getSortIcon('status')"></i>
+              </th>
+              <th
+                (click)="sortTable('priority')"
+                [class.sorted]="isSorted('priority')"
+                class="sortable"
+              >
+                Priority <i [class]="getSortIcon('priority')"></i>
+              </th>
+              <th
+                (click)="sortTable('testCaseType')"
+                [class.sorted]="isSorted('testCaseType')"
+                class="sortable"
+              >
+                Type <i [class]="getSortIcon('testCaseType')"></i>
+              </th>
+              <th
+                (click)="sortTable('assignedDate')"
+                [class.sorted]="isSorted('assignedDate')"
+                class="sortable"
+              >
+                Assigned <i [class]="getSortIcon('assignedDate')"></i>
+              </th>
+              <th
+                (click)="sortTable('completedDate')"
+                [class.sorted]="isSorted('completedDate')"
+                class="sortable"
+              >
+                Completed <i [class]="getSortIcon('completedDate')"></i>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="
+                let testCase of filteredTestCases;
+                trackBy: trackByTestCase
+              "
+            >
+              <td>
+                <div class="test-case-title">
+                  <strong>{{ testCase.title }}</strong>
+                  <small
+                    class="text-muted d-block"
+                    *ngIf="testCase.description"
+                  >
+                    {{ testCase.description | slice: 0 : 80
+                    }}{{
+                      testCase.description && testCase.description.length > 80
+                        ? "..."
+                        : ""
+                    }}
+                  </small>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark">{{
+                  testCase.projectName || "Unknown"
+                }}</span>
+              </td>
+              <td>
+                <span class="badge" [class]="getStatusColor(testCase.status)">
+                  {{ testCase.status }}
+                </span>
+              </td>
+              <td>
+                <span
+                  class="badge"
+                  [class]="getPriorityColor(testCase.priority)"
+                >
+                  {{ testCase.priority }}
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-info" *ngIf="testCase.testCaseType">
+                  {{ testCase.testCaseType }}
+                </span>
+                <span class="text-muted" *ngIf="!testCase.testCaseType">-</span>
+              </td>
+              <td>
+                <small>{{ testCase.assignedDate | date: "shortDate" }}</small>
+              </td>
+              <td>
+                <small *ngIf="testCase.completedDate; else noCompletionDate">
+                  {{ testCase.completedDate | date: "shortDate" }}
+                </small>
+                <ng-template #noCompletionDate>
+                  <span class="text-muted">-</span>
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <ng-template #noTestCases>
+          <div class="no-data py-5">
+            <i class="fas fa-tasks text-muted mb-3"></i>
+            <h5 class="text-muted">No test cases found</h5>
+            <p class="text-muted">
+              This tester has no test case assignments matching the current
+              filters.
+            </p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- Jenkins Jobs Tab -->
+  <div class="tab-content mt-4" *ngIf="activeTab === 'jenkins'">
+    <div
+      class="row g-4"
+      *ngIf="jenkinsJobAssignments.length > 0; else noJenkinsJobs"
+    >
+      <div
+        class="col-lg-6"
+        *ngFor="let job of jenkinsJobAssignments; trackBy: trackByJenkinsJob"
+      >
+        <div class="card jenkins-job-card h-100">
+          <div
+            class="card-header d-flex justify-content-between align-items-center"
+          >
+            <h6 class="mb-0">
+              <i class="fas fa-cog me-2"></i>
+              {{ job.jobName }}
+            </h6>
+            <button
+              class="btn btn-outline-primary btn-sm"
+              (click)="openJenkinsJob(job.jenkinsUrl || '')"
+              *ngIf="job.jenkinsUrl"
+            >
+              <i class="fas fa-external-link-alt me-1"></i>
+              Open
+            </button>
+          </div>
+          <div class="card-body">
+            <div class="row g-3 mb-3">
+              <div class="col-6">
+                <div class="jenkins-stat">
+                  <span
+                    class="badge"
+                    [class]="getBuildStatusColor(job.lastBuildStatus)"
+                  >
+                    {{ job.lastBuildStatus }}
+                  </span>
+                  <small class="d-block text-muted mt-1">Last Status</small>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="jenkins-stat">
+                  <strong class="text-primary"
+                    >{{ job.passPercentage }}%</strong
+                  >
+                  <small class="d-block text-muted">Pass Rate</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-4">
+                <div class="jenkins-stat">
+                  <strong class="text-primary">{{ job.totalTests }}</strong>
+                  <small class="d-block text-muted">Total</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="jenkins-stat">
+                  <strong class="text-success">{{ job.passedTests }}</strong>
+                  <small class="d-block text-muted">Passed</small>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="jenkins-stat">
+                  <strong class="text-danger">{{ job.failedTests }}</strong>
+                  <small class="d-block text-muted">Failed</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-top pt-3">
+              <small class="text-muted d-block">
+                <i class="fas fa-clock me-1"></i>
+                Last run: {{ job.lastExecutionDate | date: "medium" }}
+              </small>
+              <small class="text-muted d-block mt-1" *ngIf="job.project">
+                <i class="fas fa-project-diagram me-1"></i>
+                Project: {{ job.project.name }}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noJenkinsJobs>
+      <div class="card">
+        <div class="card-body">
+          <div class="no-data py-5">
+            <i class="fas fa-cogs text-muted mb-3"></i>
+            <h5 class="text-muted">No Jenkins jobs assigned</h5>
+            <p class="text-muted">
+              This tester has no Jenkins job assignments.
+            </p>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Feedback Tab -->
+  <div
+    class="tab-content mt-4"
+    *ngIf="activeTab === 'feedback' && canProvideFeedback"
+  >
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">
+              <i class="fas fa-comment-dots me-2"></i>
+              Provide Feedback
+            </h5>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="feedbackForm" (ngSubmit)="submitFeedback()">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label for="feedbackText" class="form-label">Feedback</label>
+                  <textarea
+                    id="feedbackText"
+                    class="form-control"
+                    rows="4"
+                    formControlName="feedback"
+                    placeholder="Enter your feedback here..."
+                    [class.is-invalid]="
+                      feedbackForm.get('feedback')?.invalid &&
+                      feedbackForm.get('feedback')?.touched
+                    "
+                  ></textarea>
+                  <div
+                    class="invalid-feedback"
+                    *ngIf="
+                      feedbackForm.get('feedback')?.invalid &&
+                      feedbackForm.get('feedback')?.touched
+                    "
+                  >
+                    Feedback is required and must be at least 10 characters
+                    long.
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2 mt-3">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  [disabled]="!feedbackForm.valid || loading"
+                >
+                  <span
+                    *ngIf="loading"
+                    class="spinner-border spinner-border-sm me-2"
+                  ></span>
+                  <i class="fas fa-paper-plane me-2" *ngIf="!loading"></i>
+                  {{ loading ? "Submitting..." : "Submit Feedback" }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  (click)="feedbackForm.reset({ type: 'general' })"
+                >
+                  <i class="fas fa-undo me-2"></i>
+                  Reset
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <p-card>
+          <ng-template pTemplate="header">
+            <div class="p-3 d-flex justify-content-between align-items-center">
+              <h6 class="mb-0">
+                <i class="fas fa-history me-2"></i>
+                Feedback History
+              </h6>
+              <button
+                class="btn btn-sm btn-outline-info"
+                (click)="toggleFeedbackHistory()"
+              >
+                <i
+                  class="fas"
+                  [class.fa-chevron-down]="!showFeedbackHistory"
+                  [class.fa-chevron-up]="showFeedbackHistory"
+                ></i>
+              </button>
+            </div>
+          </ng-template>
+
+          <ng-template pTemplate="content">
+            <div
+              id="feedbackHistorySection"
+              *ngIf="showFeedbackHistory"
+              class="feedback-list"
+            >
+              <div *ngIf="feedbackHistory.length > 0; else noFeedback">
+                <div
+                  *ngFor="let feedback of feedbackHistory"
+                  class="feedback-item mb-3"
+                >
+                  <div class="d-flex justify-end mb-2">
+                    <small class="text-muted">
+                      {{ feedback.createdAt | date: "short" }}
+                    </small>
+                    <i
+                      class="pi pi-trash pl-2 text-red-500 cursor-pointer"
+                      (click)="deleteFeedback(feedback.feedbackId)"
+                    ></i>
+                  </div>
+                  <p class="mb-1">{{ feedback.feedback }}</p>
+                </div>
+              </div>
+
+              <ng-template #noFeedback>
+                <div class="text-center py-3">
+                  <i class="fas fa-comments text-muted"></i>
+                  <p class="text-muted mt-2 mb-0">No feedback provided yet</p>
+                </div>
+              </ng-template>
+            </div>
+          </ng-template>
+        </p-card>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div class="loading-container" *ngIf="loading">
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <h5 class="mt-3 text-muted">Loading tester metrics...</h5>
+  </div>
+</div>
